@@ -55,8 +55,8 @@
       touch-action: none;
     }
     
-    /* MODAL NHẬP TỪ VỰNG */
-    #vocab-modal {
+    /* MODAL CHUNG */
+    .modal-overlay {
       display: none;
       position: absolute;
       top: 0;
@@ -79,19 +79,19 @@
       max-height: 90%;
       display: flex;
       flex-direction: column;
-      padding: 16px;
+      padding: 18px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     }
     .modal-box h2 {
       color: #38bdf8;
       font-size: 1.15rem;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       text-align: center;
     }
     .modal-box p {
       font-size: 0.8rem;
       color: #94a3b8;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       line-height: 1.35;
       text-align: center;
     }
@@ -117,7 +117,7 @@
     .modal-actions {
       display: flex;
       gap: 10px;
-      margin-top: 12px;
+      margin-top: 14px;
     }
     .btn {
       flex: 1;
@@ -133,6 +133,45 @@
     }
     .btn-save { background: #0ea5e9; color: #fff; }
     .btn-preset { background: #475569; color: #f8fafc; }
+
+    /* CẤU HÌNH THIẾT LẬP TRONG MODAL */
+    .setting-group {
+      margin-bottom: 14px;
+    }
+    .setting-label {
+      font-size: 0.88rem;
+      font-weight: bold;
+      color: #cbd5e1;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .setting-options {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .setting-options-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .option-btn {
+      padding: 8px 4px;
+      background: #0f172a;
+      border: 1.5px solid #475569;
+      border-radius: 8px;
+      color: #94a3b8;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .option-btn.active {
+      background: #0284c7;
+      border-color: #38bdf8;
+      color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -140,7 +179,8 @@
 <div id="game-container">
   <canvas id="gameCanvas"></canvas>
 
-  <div id="vocab-modal">
+  <!-- MODAL NHẬP TỪ VỰNG -->
+  <div id="vocab-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>🇩🇪 Soạn Danh Sách Từ Vựng 🇻🇳</h2>
       <p>Mỗi dòng là 1 cặp: <b>Tiếng Đức, Tiếng Việt</b><br>(Dùng dấu phẩy <code>,</code> hoặc gạch ngang <code>-</code>)</p>
@@ -148,6 +188,36 @@
       <div class="modal-actions">
         <button class="btn btn-preset" id="btn-default-vocab">Từ mẫu</button>
         <button class="btn btn-save" id="btn-save-vocab">Lưu & Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL THIẾT LẬP CHẾ ĐỘ CHƠI -->
+  <div id="settings-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2>⚙️ Thiết Lập Trò Chơi</h2>
+      
+      <div class="setting-group" style="margin-top: 8px;">
+        <span class="setting-label">👀 Xem trước bài lúc đầu:</span>
+        <div class="setting-options" id="opt-preview">
+          <button class="option-btn" data-val="0">Tắt</button>
+          <button class="option-btn" data-val="10">10 giây</button>
+          <button class="option-btn" data-val="15">15 giây</button>
+          <button class="option-btn" data-val="20">20 giây</button>
+        </div>
+      </div>
+
+      <div class="setting-group">
+        <span class="setting-label">⏱️ Thời gian ngửa bài khi lật:</span>
+        <div class="setting-options-3" id="opt-flip-delay">
+          <button class="option-btn" data-val="1000">1 giây</button>
+          <button class="option-btn" data-val="2000">2 giây</button>
+          <button class="option-btn" data-val="3000">3 giây</button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-save" id="btn-save-settings">Đồng Ý</button>
       </div>
     </div>
   </div>
@@ -489,9 +559,15 @@ class GameManager {
     this.height = 600;
     this.dpr = window.devicePixelRatio || 1;
 
-    this.state = 'MENU';
+    this.state = 'MENU'; // 'MENU' | 'PLAYING' | 'GAME_OVER'
     this.mode = 'AI';
     this.difficulty = 'EASY';
+
+    // CẤU HÌNH THỜI GIAN
+    this.previewTime = 0; // 0, 10, 15, 20s
+    this.flipDelay = 1000; // 1000, 2000, 3000ms
+    this.isPreviewing = false;
+    this.previewRemaining = 0;
 
     this.vocabList = [...DEFAULT_VOCAB];
     this.cards = [];
@@ -506,18 +582,20 @@ class GameManager {
     this.particles = [];
     this.floatingTexts = [];
     this.menuHitboxes = [];
+    this.homeBtnHitbox = null;
     this.lastTime = performance.now();
 
     this.setupResize();
     this.bindEvents();
-    this.setupModal();
+    this.setupModals();
     this.loop();
   }
 
-  setupModal() {
-    const modal = document.getElementById('vocab-modal');
+  setupModals() {
+    // 1. MODAL TỪ VỰNG
+    const vocabModal = document.getElementById('vocab-modal');
     const textarea = document.getElementById('vocab-input');
-    const btnSave = document.getElementById('btn-save-vocab');
+    const btnSaveVocab = document.getElementById('btn-save-vocab');
     const btnPreset = document.getElementById('btn-default-vocab');
 
     const updateTextarea = () => {
@@ -530,7 +608,7 @@ class GameManager {
       updateTextarea();
     });
 
-    btnSave.addEventListener('click', () => {
+    btnSaveVocab.addEventListener('click', () => {
       const lines = textarea.value.split('\n');
       const parsed = [];
       lines.forEach(line => {
@@ -550,13 +628,54 @@ class GameManager {
       }
 
       this.vocabList = parsed;
-      modal.style.display = 'none';
+      vocabModal.style.display = 'none';
+      this.sound.playMatch();
+    });
+
+    // 2. MODAL THIẾT LẬP
+    const settingsModal = document.getElementById('settings-modal');
+    const btnSaveSettings = document.getElementById('btn-save-settings');
+    const optPreviewBtns = document.querySelectorAll('#opt-preview .option-btn');
+    const optFlipBtns = document.querySelectorAll('#opt-flip-delay .option-btn');
+
+    const updateSettingsUI = () => {
+      optPreviewBtns.forEach(b => {
+        b.classList.toggle('active', parseInt(b.dataset.val) === this.previewTime);
+      });
+      optFlipBtns.forEach(b => {
+        b.classList.toggle('active', parseInt(b.dataset.val) === this.flipDelay);
+      });
+    };
+    updateSettingsUI();
+
+    optPreviewBtns.forEach(b => {
+      b.addEventListener('click', () => {
+        this.previewTime = parseInt(b.dataset.val);
+        updateSettingsUI();
+        this.sound.playFlip();
+      });
+    });
+
+    optFlipBtns.forEach(b => {
+      b.addEventListener('click', () => {
+        this.flipDelay = parseInt(b.dataset.val);
+        updateSettingsUI();
+        this.sound.playFlip();
+      });
+    });
+
+    btnSaveSettings.addEventListener('click', () => {
+      settingsModal.style.display = 'none';
       this.sound.playMatch();
     });
   }
 
   openVocabModal() {
     document.getElementById('vocab-modal').style.display = 'flex';
+  }
+
+  openSettingsModal() {
+    document.getElementById('settings-modal').style.display = 'flex';
   }
 
   setupResize() {
@@ -671,6 +790,32 @@ class GameManager {
 
     this.recalculateGridLayout();
     this.state = 'PLAYING';
+
+    // XỬ LÝ CHẾ ĐỘ XEM TRƯỚC BÀI
+    if (this.previewTime > 0) {
+      this.isPreviewing = true;
+      this.previewRemaining = this.previewTime;
+      this.lockBoard = true;
+      this.cards.forEach(c => c.isFlipped = true);
+
+      const interval = setInterval(() => {
+        if (this.state !== 'PLAYING' || !this.isPreviewing) {
+          clearInterval(interval);
+          return;
+        }
+        this.previewRemaining--;
+        if (this.previewRemaining <= 0) {
+          clearInterval(interval);
+          this.isPreviewing = false;
+          this.lockBoard = false;
+          this.cards.forEach(c => c.isFlipped = false);
+          this.sound.playFlip();
+        }
+      }, 1000);
+    } else {
+      this.isPreviewing = false;
+      this.lockBoard = false;
+    }
   }
 
   recalculateGridLayout() {
@@ -730,6 +875,9 @@ class GameManager {
           } else if (btn.type === 'vocab') {
             this.sound.playFlip();
             this.openVocabModal();
+          } else if (btn.type === 'settings') {
+            this.sound.playFlip();
+            this.openSettingsModal();
           } else if (btn.type === 'start') {
             this.sound.playMatch();
             this.initGame();
@@ -738,7 +886,17 @@ class GameManager {
         }
       }
     } else if (this.state === 'PLAYING') {
-      if (this.lockBoard) return;
+      // Bấm nút Menu Home
+      if (this.homeBtnHitbox && 
+          x >= this.homeBtnHitbox.x && x <= this.homeBtnHitbox.x + this.homeBtnHitbox.w &&
+          y >= this.homeBtnHitbox.y && y <= this.homeBtnHitbox.y + this.homeBtnHitbox.h) {
+        this.sound.playFlip();
+        this.isPreviewing = false;
+        this.state = 'MENU';
+        return;
+      }
+
+      if (this.lockBoard || this.isPreviewing) return;
       if (this.players[this.currentPlayerIdx].isAI) return;
 
       for (let i = 0; i < this.cards.length; i++) {
@@ -805,12 +963,12 @@ class GameManager {
         if (this.players[this.currentPlayerIdx].isAI) {
           setTimeout(() => this.makeAiMove(), 650);
         }
-      }, 850);
+      }, this.flipDelay); // DÙNG THỜI GIAN NGỬA BÀI TÙY CHỌN
     }
   }
 
   makeAiMove() {
-    if (this.state !== 'PLAYING' || !this.players[this.currentPlayerIdx].isAI || this.lockBoard) return;
+    if (this.state !== 'PLAYING' || !this.players[this.currentPlayerIdx].isAI || this.lockBoard || this.isPreviewing) return;
 
     const unmatched = this.cards.filter(c => !c.isMatched && !c.isFlipped);
     if (unmatched.length === 0) return;
@@ -917,6 +1075,11 @@ class GameManager {
       this.cards.forEach(c => c.draw(this.ctx));
       this.particles.forEach(p => p.draw(this.ctx));
       this.floatingTexts.forEach(t => t.draw(this.ctx));
+
+      // Hiển thị Banner đếm ngược khi đang ở chế độ Xem trước bài
+      if (this.isPreviewing) {
+        this.renderPreviewBanner();
+      }
     } else if (this.state === 'GAME_OVER') {
       this.renderHeader();
       this.cards.forEach(c => c.draw(this.ctx));
@@ -924,6 +1087,30 @@ class GameManager {
       this.floatingTexts.forEach(t => t.draw(this.ctx));
       this.renderGameOver();
     }
+  }
+
+  renderPreviewBanner() {
+    const ctx = this.ctx;
+    const bannerH = 34;
+    const bannerY = Math.max(46, Math.min(64, this.height * 0.09)) + 6;
+    
+    ctx.fillStyle = 'rgba(234, 88, 12, 0.9)';
+    ctx.strokeStyle = '#fdba74';
+    ctx.lineWidth = 1.5;
+    
+    const bannerW = Math.min(this.width * 0.84, 320);
+    const startX = (this.width - bannerW) / 2;
+    
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(startX, bannerY, bannerW, bannerH, 8) : ctx.rect(startX, bannerY, bannerW, bannerH);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 13px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`👀 Ghi nhớ nhanh! Còn lại: ${this.previewRemaining}s`, this.width / 2, bannerY + bannerH / 2);
   }
 
   renderMenu() {
@@ -935,19 +1122,19 @@ class GameManager {
     const minDim = Math.min(W, H);
 
     ctx.fillStyle = '#38bdf8';
-    const titleSize = Math.max(18, Math.min(28, minDim * 0.072));
+    const titleSize = Math.max(17, Math.min(26, minDim * 0.07));
     ctx.font = 'bold ' + titleSize + "px sans-serif";
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('DEUTSCH - VIETNAMESISCH', W / 2, H * 0.09);
+    ctx.fillText('DEUTSCH - VIETNAMESISCH', W / 2, H * 0.08);
 
     ctx.fillStyle = '#94a3b8';
-    ctx.font = Math.max(11, Math.min(13, minDim * 0.03)) + "px sans-serif";
-    ctx.fillText('Ghép cặp từ tương ứng Tiếng Đức 🇩🇪 - Tiếng Việt 🇻🇳', W / 2, H * 0.14);
+    ctx.font = Math.max(10, Math.min(12, minDim * 0.028)) + "px sans-serif";
+    ctx.fillText('Ghép cặp từ tương ứng Tiếng Đức 🇩🇪 - Tiếng Việt 🇻🇳', W / 2, H * 0.125);
 
     const btnW = Math.min(W * 0.88, 360);
-    const btnH = Math.max(34, Math.min(42, H * 0.06));
-    let curY = H * 0.18;
+    const btnH = Math.max(32, Math.min(38, H * 0.056));
+    let curY = H * 0.165;
 
     const modes = [
       { id: 'AI', label: '🤖 Đấu với Máy (AI)' },
@@ -965,14 +1152,14 @@ class GameManager {
       ctx.strokeRect(x, curY, btnW, btnH);
 
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold ' + Math.max(12, Math.min(15, btnH * 0.42)) + "px sans-serif";
+      ctx.font = 'bold ' + Math.max(11, Math.min(14, btnH * 0.42)) + "px sans-serif";
       ctx.fillText(m.label, W / 2, curY + btnH / 2);
 
       this.menuHitboxes.push({ type: 'mode', val: m.id, x: x, y: curY, w: btnW, h: btnH });
-      curY += btnH + Math.max(5, H * 0.012);
+      curY += btnH + Math.max(4, H * 0.01);
     });
 
-    curY += Math.max(3, H * 0.008);
+    curY += Math.max(2, H * 0.005);
 
     const diffs = [
       { id: 'EASY', label: 'Dễ (4x4)' },
@@ -994,29 +1181,47 @@ class GameManager {
       ctx.strokeRect(x, curY, diffW, diffH);
 
       ctx.fillStyle = isSel ? '#0f172a' : '#fff';
-      ctx.font = 'bold ' + Math.max(11, Math.min(13, diffH * 0.4)) + "px sans-serif";
+      ctx.font = 'bold ' + Math.max(10, Math.min(12, diffH * 0.4)) + "px sans-serif";
       ctx.fillText(d.label, x + diffW / 2, curY + diffH / 2);
 
       this.menuHitboxes.push({ type: 'diff', val: d.id, x: x, y: curY, w: diffW, h: diffH });
     });
 
-    curY += diffH + Math.max(6, H * 0.015);
+    curY += diffH + Math.max(5, H * 0.012);
 
-    const vocabBtnX = (W - btnW) / 2;
+    // HÀNG NÚT: NHẬP TỪ VỰNG & THIẾT LẬP
+    const rowGap = 8;
+    const halfBtnW = (btnW - rowGap) / 2;
+    const rowStartX = (W - btnW) / 2;
+
+    // Nút Nhập từ vựng
     ctx.fillStyle = '#6366f1';
     ctx.strokeStyle = '#a5b4fc';
     ctx.lineWidth = 1.5;
-    ctx.fillRect(vocabBtnX, curY, btnW, btnH);
-    ctx.strokeRect(vocabBtnX, curY, btnW, btnH);
+    ctx.fillRect(rowStartX, curY, halfBtnW, btnH);
+    ctx.strokeRect(rowStartX, curY, halfBtnW, btnH);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold ' + Math.max(12, Math.min(15, btnH * 0.4)) + "px sans-serif";
-    ctx.fillText('✏️ Nhập Từ Vựng (' + this.vocabList.length + ' cặp)', W / 2, curY + btnH / 2);
+    ctx.font = 'bold ' + Math.max(11, Math.min(13, btnH * 0.38)) + "px sans-serif";
+    ctx.fillText('✏️ Từ Vựng (' + this.vocabList.length + ')', rowStartX + halfBtnW / 2, curY + btnH / 2);
+    this.menuHitboxes.push({ type: 'vocab', x: rowStartX, y: curY, w: halfBtnW, h: btnH });
 
-    this.menuHitboxes.push({ type: 'vocab', x: vocabBtnX, y: curY, w: btnW, h: btnH });
+    // Nút Thiết lập
+    const setBtnX = rowStartX + halfBtnW + rowGap;
+    ctx.fillStyle = '#0f766e';
+    ctx.strokeStyle = '#2dd4bf';
+    ctx.lineWidth = 1.5;
+    ctx.fillRect(setBtnX, curY, halfBtnW, btnH);
+    ctx.strokeRect(setBtnX, curY, halfBtnW, btnH);
 
-    const startY = curY + btnH + Math.max(10, H * 0.02);
-    const startH = Math.max(40, Math.min(48, H * 0.072));
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold ' + Math.max(11, Math.min(13, btnH * 0.38)) + "px sans-serif";
+    ctx.fillText('⚙️ Thiết Lập', setBtnX + halfBtnW / 2, curY + btnH / 2);
+    this.menuHitboxes.push({ type: 'settings', x: setBtnX, y: curY, w: halfBtnW, h: btnH });
+
+    // NÚT BẮT ĐẦU CHƠI
+    const startY = curY + btnH + Math.max(8, H * 0.018);
+    const startH = Math.max(38, Math.min(46, H * 0.068));
     const startX = (W - btnW) / 2;
 
     ctx.fillStyle = '#16a34a';
@@ -1026,7 +1231,7 @@ class GameManager {
     ctx.strokeRect(startX, startY, btnW, startH);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold ' + Math.max(15, Math.min(19, startH * 0.45)) + "px sans-serif";
+    ctx.font = 'bold ' + Math.max(14, Math.min(18, startH * 0.44)) + "px sans-serif";
     ctx.fillText('BẮT ĐẦU CHƠI ▶', W / 2, startY + startH / 2);
 
     this.menuHitboxes.push({ type: 'start', x: startX, y: startY, w: btnW, h: startH });
@@ -1038,28 +1243,54 @@ class GameManager {
     ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
     ctx.fillRect(0, 0, this.width, headerH);
 
-    const spacing = this.width / this.players.length;
+    // Nút Menu Home
+    const homeBtnW = Math.max(44, Math.min(64, this.width * 0.14));
+    const homeBtnH = headerH - 8;
+    const homeBtnX = 6;
+    const homeBtnY = 4;
+
+    ctx.fillStyle = '#1e293b';
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(homeBtnX, homeBtnY, homeBtnW, homeBtnH, 8) : ctx.rect(homeBtnX, homeBtnY, homeBtnW, homeBtnH);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold ' + Math.max(10, Math.min(12, homeBtnH * 0.35)) + 'px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🏠 Menu', homeBtnX + homeBtnW / 2, homeBtnY + homeBtnH / 2);
+
+    this.homeBtnHitbox = { x: homeBtnX, y: homeBtnY, w: homeBtnW, h: homeBtnH };
+
+    // Khu vực hiển thị điểm người chơi
+    const playersAreaStartX = homeBtnX + homeBtnW + 6;
+    const playersAreaW = this.width - playersAreaStartX;
+    const spacing = playersAreaW / this.players.length;
+
     this.players.forEach((p, idx) => {
       const isCurrent = idx === this.currentPlayerIdx;
-      const x = idx * spacing + spacing / 2;
+      const x = playersAreaStartX + idx * spacing + spacing / 2;
 
       if (isCurrent) {
         ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
         ctx.strokeStyle = p.color;
         ctx.lineWidth = 1.5;
-        ctx.fillRect(idx * spacing + 4, 3, spacing - 8, headerH - 6);
-        ctx.strokeRect(idx * spacing + 4, 3, spacing - 8, headerH - 6);
+        ctx.fillRect(playersAreaStartX + idx * spacing + 2, 4, spacing - 4, headerH - 8);
+        ctx.strokeRect(playersAreaStartX + idx * spacing + 2, 4, spacing - 4, headerH - 8);
       }
 
       ctx.fillStyle = p.color;
-      const nameSize = Math.max(11, Math.min(14, headerH * 0.28));
+      const nameSize = Math.max(10, Math.min(13, headerH * 0.26));
       ctx.font = (isCurrent ? 'bold ' : '') + nameSize + "px sans-serif";
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(p.name + (isCurrent ? ' 👉' : ''), x, headerH * 0.32);
 
       ctx.fillStyle = '#facc15';
-      const scoreSize = Math.max(12, Math.min(16, headerH * 0.3));
+      const scoreSize = Math.max(11, Math.min(15, headerH * 0.28));
       ctx.font = 'bold ' + scoreSize + "px sans-serif";
       ctx.fillText(p.score + 'đ', x, headerH * 0.72);
     });
