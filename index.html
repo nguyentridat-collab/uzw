@@ -35,7 +35,6 @@
       overflow: hidden;
     }
 
-    /* ĐẶT CHIỀU CAO 600PX KHI Ở GIAO DIỆN MOBILE */
     @media (max-width: 768px) {
       body {
         height: auto;
@@ -55,7 +54,6 @@
       touch-action: none;
     }
     
-    /* MODAL CHUNG */
     .modal-overlay {
       display: none;
       position: absolute;
@@ -134,7 +132,6 @@
     .btn-save { background: #0ea5e9; color: #fff; }
     .btn-preset { background: #475569; color: #f8fafc; }
 
-    /* CẤU HÌNH THIẾT LẬP TRONG MODAL */
     .setting-group {
       margin-bottom: 14px;
     }
@@ -462,7 +459,6 @@ class VocabCard {
     const radius = Math.max(4, Math.min(w, h) * 0.1);
 
     if (this.flipProgress < 0.5) {
-      // Mặt úp
       const grad = ctx.createLinearGradient(-w / 2, -h / 2, w / 2, h / 2);
       grad.addColorStop(0, '#1e3a8a');
       grad.addColorStop(1, '#3b82f6');
@@ -478,23 +474,23 @@ class VocabCard {
       ctx.textBaseline = 'middle';
       ctx.fillText('🇩🇪 🇻🇳', 0, 0);
     } else {
-      // Mặt ngửa
       const isDe = this.lang === 'DE';
       ctx.fillStyle = '#ffffff';
       ctx.strokeStyle = this.isMatched ? '#22c55e' : (isDe ? '#0284c7' : '#ea580c');
       ctx.lineWidth = Math.max(1.5, Math.min(w, h) * 0.045);
       this.roundRect(ctx, -w / 2, -h / 2, w, h, radius, true, true);
 
+      // Căn giữa cờ ở phía trên thẻ bài
       const flag = isDe ? '🇩🇪' : '🇻🇳';
-      const flagSize = Math.max(9, Math.min(13, Math.floor(Math.min(w, h) * 0.16)));
+      const flagSize = Math.max(9, Math.min(14, Math.floor(Math.min(w, h) * 0.18)));
       ctx.font = flagSize + 'px sans-serif';
-      ctx.textAlign = 'right';
-      ctx.textBaseline = 'top';
-      ctx.fillText(flag, w / 2 - Math.max(4, w * 0.08), -h / 2 + Math.max(4, h * 0.06));
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(flag, 0, -h / 2 + flagSize * 0.9);
 
-      const safeW = w * 0.84;
-      const safeH = h * 0.68;
-      this.drawWord(ctx, this.text, 0, flagSize * 0.25, safeW, safeH, isDe ? '#0369a1' : '#c2410c');
+      const safeW = w * 0.86;
+      const safeH = h * 0.60;
+      this.drawWord(ctx, this.text, 0, flagSize * 0.45, safeW, safeH, isDe ? '#0369a1' : '#c2410c');
     }
 
     ctx.restore();
@@ -578,17 +574,15 @@ class GameManager {
     this.height = 600;
     this.dpr = window.devicePixelRatio || 1;
 
-    this.state = 'MENU'; // 'MENU' | 'PLAYING' | 'VICTORY_ANIM' | 'GAME_OVER'
+    this.state = 'MENU';
     this.mode = 'AI';
     this.difficulty = 'EASY';
 
-    // CẤU HÌNH THỜI GIAN
     this.previewTime = 0;
     this.flipDelay = 1000;
     this.isPreviewing = false;
     this.previewRemaining = 0;
 
-    // ANIMATION 1S KẾT THÚC
     this.animTimer = 0;
     this.isUserWon = true;
 
@@ -1160,14 +1154,12 @@ class GameManager {
     this.cards.forEach(c => c.draw(ctx));
     this.particles.forEach(p => p.draw(ctx));
 
-    // Lớp overlay mờ
     ctx.fillStyle = `rgba(15, 23, 42, ${0.45 * Math.min(1, progress * 2)})`;
     ctx.fillRect(0, 0, this.width, this.height);
 
     const cx = this.width / 2;
     const cy = this.height / 2;
 
-    // Hiệu ứng Pop & Zoom
     let scale = 1.0;
     if (progress < 0.25) {
       scale = (progress / 0.25) * 1.25;
@@ -1244,7 +1236,7 @@ class GameManager {
     const minDim = Math.min(W, H);
 
     ctx.fillStyle = '#38bdf8';
-    const titleSize = Math.max(17, Math.min(26, minDim * 0.07));
+    const titleSize = Math.max(16, Math.min(24, minDim * 0.065));
     ctx.font = 'bold ' + titleSize + "px sans-serif";
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -1252,6 +1244,8 @@ class GameManager {
 
     ctx.fillStyle = '#94a3b8';
     ctx.font = Math.max(10, Math.min(12, minDim * 0.028)) + "px sans-serif";
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
     ctx.fillText('Ghép cặp từ tương ứng Tiếng Đức 🇩🇪 - Tiếng Việt 🇻🇳', W / 2, H * 0.125);
 
     const btnW = Math.min(W * 0.88, 360);
@@ -1274,7 +1268,9 @@ class GameManager {
       ctx.strokeRect(x, curY, btnW, btnH);
 
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold ' + Math.max(11, Math.min(14, btnH * 0.42)) + "px sans-serif";
+      ctx.font = 'bold ' + Math.max(11, Math.min(13.5, btnH * 0.4)) + "px sans-serif";
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
       ctx.fillText(m.label, W / 2, curY + btnH / 2);
 
       this.menuHitboxes.push({ type: 'mode', val: m.id, x: x, y: curY, w: btnW, h: btnH });
@@ -1304,6 +1300,8 @@ class GameManager {
 
       ctx.fillStyle = isSel ? '#0f172a' : '#fff';
       ctx.font = 'bold ' + Math.max(10, Math.min(12, diffH * 0.4)) + "px sans-serif";
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
       ctx.fillText(d.label, x + diffW / 2, curY + diffH / 2);
 
       this.menuHitboxes.push({ type: 'diff', val: d.id, x: x, y: curY, w: diffW, h: diffH });
@@ -1315,6 +1313,7 @@ class GameManager {
     const halfBtnW = (btnW - rowGap) / 2;
     const rowStartX = (W - btnW) / 2;
 
+    // Nút Từ Vựng
     ctx.fillStyle = '#6366f1';
     ctx.strokeStyle = '#a5b4fc';
     ctx.lineWidth = 1.5;
@@ -1323,9 +1322,12 @@ class GameManager {
 
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold ' + Math.max(11, Math.min(13, btnH * 0.38)) + "px sans-serif";
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
     ctx.fillText('✏️ Từ Vựng (' + this.vocabList.length + ')', rowStartX + halfBtnW / 2, curY + btnH / 2);
     this.menuHitboxes.push({ type: 'vocab', x: rowStartX, y: curY, w: halfBtnW, h: btnH });
 
+    // Nút Thiết Lập
     const setBtnX = rowStartX + halfBtnW + rowGap;
     ctx.fillStyle = '#0f766e';
     ctx.strokeStyle = '#2dd4bf';
@@ -1335,9 +1337,12 @@ class GameManager {
 
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold ' + Math.max(11, Math.min(13, btnH * 0.38)) + "px sans-serif";
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
     ctx.fillText('⚙️ Thiết Lập', setBtnX + halfBtnW / 2, curY + btnH / 2);
     this.menuHitboxes.push({ type: 'settings', x: setBtnX, y: curY, w: halfBtnW, h: btnH });
 
+    // Nút Bắt Đầu
     const startY = curY + btnH + Math.max(8, H * 0.018);
     const startH = Math.max(38, Math.min(46, H * 0.068));
     const startX = (W - btnW) / 2;
@@ -1349,7 +1354,9 @@ class GameManager {
     ctx.strokeRect(startX, startY, btnW, startH);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold ' + Math.max(14, Math.min(18, startH * 0.44)) + "px sans-serif";
+    ctx.font = 'bold ' + Math.max(13, Math.min(16, startH * 0.42)) + "px sans-serif";
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
     ctx.fillText('BẮT ĐẦU CHƠI ▶', W / 2, startY + startH / 2);
 
     this.menuHitboxes.push({ type: 'start', x: startX, y: startY, w: btnW, h: startH });
