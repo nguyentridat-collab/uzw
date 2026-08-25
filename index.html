@@ -18,7 +18,7 @@
       height: 100%;
       background: #0f172a;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      overflow-x: hidden;
+      overflow: hidden;
       color: #f8fafc;
       display: flex;
       justify-content: center;
@@ -176,10 +176,9 @@
 <div id="game-container">
   <canvas id="gameCanvas"></canvas>
 
-  <!-- MODAL NHẬP TỪ VỰNG -->
   <div id="vocab-modal" class="modal-overlay">
     <div class="modal-box">
-      <h2>🇩🇪 Soạn Danh Sách Từ Vựng 🇻🇳</h2>
+      <h2>Soạn Danh Sách Từ Vựng</h2>
       <p>Mỗi dòng là 1 cặp: <b>Tiếng Đức, Tiếng Việt</b><br>(Dùng dấu phẩy <code>,</code> hoặc gạch ngang <code>-</code>)</p>
       <textarea id="vocab-input" spellcheck="false" placeholder="das Haus, ngôi nhà&#10;lernen, học tập&#10;der Baum, cái cây&#10;trinken, uống"></textarea>
       <div class="modal-actions">
@@ -189,10 +188,9 @@
     </div>
   </div>
 
-  <!-- MODAL THIẾT LẬP CHẾ ĐỘ CHƠI -->
   <div id="settings-modal" class="modal-overlay">
     <div class="modal-box">
-      <h2>⚙️ Thiết Lập Trò Chơi</h2>
+      <h2>Thiết Lập Trò Chơi</h2>
       
       <div class="setting-group" style="margin-top: 8px;">
         <span class="setting-label">👀 Xem trước bài lúc đầu:</span>
@@ -375,6 +373,7 @@ class FloatingText {
     ctx.font = 'bold ' + this.fontSize + 'px sans-serif';
     ctx.fillStyle = this.color;
     ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 3;
     ctx.strokeText(this.text, this.x, this.y);
@@ -472,7 +471,7 @@ class VocabCard {
       ctx.fillStyle = '#93c5fd';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('🇩🇪 🇻🇳', 0, 0);
+      ctx.fillText('DE - VI', 0, 0);
     } else {
       const isDe = this.lang === 'DE';
       ctx.fillStyle = '#ffffff';
@@ -480,17 +479,21 @@ class VocabCard {
       ctx.lineWidth = Math.max(1.5, Math.min(w, h) * 0.045);
       this.roundRect(ctx, -w / 2, -h / 2, w, h, radius, true, true);
 
-      // Căn giữa cờ ở phía trên thẻ bài
-      const flag = isDe ? '🇩🇪' : '🇻🇳';
-      const flagSize = Math.max(9, Math.min(14, Math.floor(Math.min(w, h) * 0.18)));
-      ctx.font = flagSize + 'px sans-serif';
+      // Nhãn ngôn ngữ DE/VI rõ ràng, không phụ thuộc font emoji của hệ thống
+      const badgeH = Math.max(10, Math.min(14, h * 0.18));
+      const badgeW = Math.max(18, Math.min(24, w * 0.28));
+      ctx.fillStyle = isDe ? '#0284c7' : '#ea580c';
+      this.roundRect(ctx, -badgeW / 2, -h / 2 + 4, badgeW, badgeH, 3, true, false);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold ' + Math.floor(badgeH * 0.75) + 'px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(flag, 0, -h / 2 + flagSize * 0.9);
+      ctx.fillText(this.lang, 0, -h / 2 + 4 + badgeH / 2);
 
       const safeW = w * 0.86;
       const safeH = h * 0.60;
-      this.drawWord(ctx, this.text, 0, flagSize * 0.45, safeW, safeH, isDe ? '#0369a1' : '#c2410c');
+      this.drawWord(ctx, this.text, 0, badgeH * 0.5, safeW, safeH, isDe ? '#0369a1' : '#c2410c');
     }
 
     ctx.restore();
@@ -1177,7 +1180,7 @@ class GameManager {
       ctx.font = '54px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('🎉', 0, -32);
+      ctx.fillText('🏆', 0, -32);
 
       ctx.fillStyle = '#facc15';
       ctx.strokeStyle = '#000000';
@@ -1216,12 +1219,10 @@ class GameManager {
     const startX = (this.width - bannerW) / 2;
     
     ctx.beginPath();
-    ctx.roundRect ? ctx.roundRect(startX, bannerY, bannerW, bannerH, 8) : ctx.rect(startX, bannerY, bannerW, bannerH);
-    ctx.fill();
-    ctx.stroke();
+    this.roundRect(ctx, startX, bannerY, bannerW, bannerH, 8, true, true);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 13px sans-serif';
+    ctx.font = 'bold 12px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(`👀 Ghi nhớ nhanh! Còn lại: ${this.previewRemaining}s`, this.width / 2, bannerY + bannerH / 2);
@@ -1236,26 +1237,27 @@ class GameManager {
     const minDim = Math.min(W, H);
 
     ctx.fillStyle = '#38bdf8';
-    const titleSize = Math.max(16, Math.min(24, minDim * 0.065));
+    const titleSize = Math.max(16, Math.min(22, minDim * 0.06));
     ctx.font = 'bold ' + titleSize + "px sans-serif";
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('DEUTSCH - VIETNAMESISCH', W / 2, H * 0.08);
+    ctx.fillText('DEUTSCH - VIETNAMESISCH', W / 2, H * 0.075);
 
     ctx.fillStyle = '#94a3b8';
-    ctx.font = Math.max(10, Math.min(12, minDim * 0.028)) + "px sans-serif";
+    ctx.font = Math.max(10, Math.min(11.5, minDim * 0.027)) + "px sans-serif";
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('Ghép cặp từ tương ứng Tiếng Đức 🇩🇪 - Tiếng Việt 🇻🇳', W / 2, H * 0.125);
+    ctx.fillText('Ghép cặp từ tương ứng Đức - Việt', W / 2, H * 0.12);
 
-    const btnW = Math.min(W * 0.88, 360);
-    const btnH = Math.max(32, Math.min(38, H * 0.056));
-    let curY = H * 0.165;
+    const btnW = Math.min(W * 0.88, 340);
+    const btnH = Math.max(34, Math.min(40, H * 0.06));
+    let curY = H * 0.16;
 
+    // Sử dụng bộ Single Code Point emoji chuẩn
     const modes = [
-      { id: 'AI', label: '🤖 Đấu với Máy (AI)' },
-      { id: 'P2', label: '👥 2 Người chơi (Pass & Play)' },
-      { id: 'P3', label: '👨‍👩‍👦 3 Người chơi (Pass & Play)' }
+      { id: 'AI', label: '🤖  Đấu với Máy (AI)' },
+      { id: 'P2', label: '👥  2 Người chơi (Pass & Play)' },
+      { id: 'P3', label: '👪  3 Người chơi (Pass & Play)' }
     ];
 
     modes.forEach(m => {
@@ -1264,17 +1266,17 @@ class GameManager {
       ctx.fillStyle = isSel ? '#0284c7' : '#1e293b';
       ctx.strokeStyle = isSel ? '#38bdf8' : '#475569';
       ctx.lineWidth = 1.5;
-      ctx.fillRect(x, curY, btnW, btnH);
-      ctx.strokeRect(x, curY, btnW, btnH);
+      
+      this.roundRect(ctx, x, curY, btnW, btnH, 8, true, true);
 
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold ' + Math.max(11, Math.min(13.5, btnH * 0.4)) + "px sans-serif";
+      ctx.font = 'bold ' + Math.max(11, Math.min(13, btnH * 0.38)) + "px sans-serif";
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(m.label, W / 2, curY + btnH / 2);
+      ctx.fillText(m.label, x + btnW / 2, curY + btnH / 2);
 
       this.menuHitboxes.push({ type: 'mode', val: m.id, x: x, y: curY, w: btnW, h: btnH });
-      curY += btnH + Math.max(4, H * 0.01);
+      curY += btnH + Math.max(5, H * 0.012);
     });
 
     curY += Math.max(2, H * 0.005);
@@ -1295,11 +1297,11 @@ class GameManager {
       ctx.fillStyle = isSel ? '#eab308' : '#1e293b';
       ctx.strokeStyle = isSel ? '#fef08a' : '#475569';
       ctx.lineWidth = 1.5;
-      ctx.fillRect(x, curY, diffW, diffH);
-      ctx.strokeRect(x, curY, diffW, diffH);
+
+      this.roundRect(ctx, x, curY, diffW, diffH, 6, true, true);
 
       ctx.fillStyle = isSel ? '#0f172a' : '#fff';
-      ctx.font = 'bold ' + Math.max(10, Math.min(12, diffH * 0.4)) + "px sans-serif";
+      ctx.font = 'bold ' + Math.max(10, Math.min(11.5, diffH * 0.38)) + "px sans-serif";
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(d.label, x + diffW / 2, curY + diffH / 2);
@@ -1307,59 +1309,72 @@ class GameManager {
       this.menuHitboxes.push({ type: 'diff', val: d.id, x: x, y: curY, w: diffW, h: diffH });
     });
 
-    curY += diffH + Math.max(5, H * 0.012);
+    curY += diffH + Math.max(6, H * 0.014);
 
     const rowGap = 8;
     const halfBtnW = (btnW - rowGap) / 2;
     const rowStartX = (W - btnW) / 2;
 
-    // Nút Từ Vựng
+    // Nút Từ Vựng với icon sách đơn mã
     ctx.fillStyle = '#6366f1';
     ctx.strokeStyle = '#a5b4fc';
     ctx.lineWidth = 1.5;
-    ctx.fillRect(rowStartX, curY, halfBtnW, btnH);
-    ctx.strokeRect(rowStartX, curY, halfBtnW, btnH);
+    this.roundRect(ctx, rowStartX, curY, halfBtnW, btnH, 8, true, true);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold ' + Math.max(11, Math.min(13, btnH * 0.38)) + "px sans-serif";
+    ctx.font = 'bold ' + Math.max(10.5, Math.min(12, btnH * 0.34)) + "px sans-serif";
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('✏️ Từ Vựng (' + this.vocabList.length + ')', rowStartX + halfBtnW / 2, curY + btnH / 2);
+    ctx.fillText('📖 Từ Vựng (' + this.vocabList.length + ')', rowStartX + halfBtnW / 2, curY + btnH / 2);
     this.menuHitboxes.push({ type: 'vocab', x: rowStartX, y: curY, w: halfBtnW, h: btnH });
 
-    // Nút Thiết Lập
+    // Nút Thiết Lập với icon cờ lê đơn mã
     const setBtnX = rowStartX + halfBtnW + rowGap;
     ctx.fillStyle = '#0f766e';
     ctx.strokeStyle = '#2dd4bf';
     ctx.lineWidth = 1.5;
-    ctx.fillRect(setBtnX, curY, halfBtnW, btnH);
-    ctx.strokeRect(setBtnX, curY, halfBtnW, btnH);
+    this.roundRect(ctx, setBtnX, curY, halfBtnW, btnH, 8, true, true);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold ' + Math.max(11, Math.min(13, btnH * 0.38)) + "px sans-serif";
+    ctx.font = 'bold ' + Math.max(10.5, Math.min(12, btnH * 0.34)) + "px sans-serif";
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('⚙️ Thiết Lập', setBtnX + halfBtnW / 2, curY + btnH / 2);
+    ctx.fillText('🔧 Thiết Lập', setBtnX + halfBtnW / 2, curY + btnH / 2);
     this.menuHitboxes.push({ type: 'settings', x: setBtnX, y: curY, w: halfBtnW, h: btnH });
 
     // Nút Bắt Đầu
-    const startY = curY + btnH + Math.max(8, H * 0.018);
-    const startH = Math.max(38, Math.min(46, H * 0.068));
+    const startY = curY + btnH + Math.max(10, H * 0.02);
+    const startH = Math.max(40, Math.min(46, H * 0.075));
     const startX = (W - btnW) / 2;
 
     ctx.fillStyle = '#16a34a';
     ctx.strokeStyle = '#86efac';
     ctx.lineWidth = 2;
-    ctx.fillRect(startX, startY, btnW, startH);
-    ctx.strokeRect(startX, startY, btnW, startH);
+    this.roundRect(ctx, startX, startY, btnW, startH, 10, true, true);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold ' + Math.max(13, Math.min(16, startH * 0.42)) + "px sans-serif";
+    ctx.font = 'bold ' + Math.max(13, Math.min(15.5, startH * 0.4)) + "px sans-serif";
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('BẮT ĐẦU CHƠI ▶', W / 2, startY + startH / 2);
+    ctx.fillText('BẮT ĐẦU CHƠI', startX + btnW / 2, startY + startH / 2);
 
     this.menuHitboxes.push({ type: 'start', x: startX, y: startY, w: btnW, h: startH });
+  }
+
+  roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    if (fill) ctx.fill();
+    if (stroke) ctx.stroke();
   }
 
   renderHeader() {
@@ -1376,16 +1391,13 @@ class GameManager {
     ctx.fillStyle = '#1e293b';
     ctx.strokeStyle = '#475569';
     ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.roundRect ? ctx.roundRect(homeBtnX, homeBtnY, homeBtnW, homeBtnH, 8) : ctx.rect(homeBtnX, homeBtnY, homeBtnW, homeBtnH);
-    ctx.fill();
-    ctx.stroke();
+    this.roundRect(ctx, homeBtnX, homeBtnY, homeBtnW, homeBtnH, 8, true, true);
 
     ctx.fillStyle = '#f8fafc';
     ctx.font = 'bold ' + Math.max(10, Math.min(12, homeBtnH * 0.35)) + 'px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('🏠 Menu', homeBtnX + homeBtnW / 2, homeBtnY + homeBtnH / 2);
+    ctx.fillText('Menu', homeBtnX + homeBtnW / 2, homeBtnY + homeBtnH / 2);
 
     this.homeBtnHitbox = { x: homeBtnX, y: homeBtnY, w: homeBtnW, h: homeBtnH };
 
@@ -1410,7 +1422,7 @@ class GameManager {
       ctx.font = (isCurrent ? 'bold ' : '') + nameSize + "px sans-serif";
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(p.name + (isCurrent ? ' 👉' : ''), x, headerH * 0.32);
+      ctx.fillText(p.name + (isCurrent ? ' •' : ''), x, headerH * 0.32);
 
       ctx.fillStyle = '#facc15';
       const scoreSize = Math.max(11, Math.min(15, headerH * 0.28));
@@ -1435,7 +1447,7 @@ class GameManager {
     ctx.font = 'bold ' + Math.max(18, Math.min(28, W * 0.07)) + "px sans-serif";
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('🏆 BẢNG TỔNG KẾT 🏆', W / 2, H * 0.25);
+    ctx.fillText('BẢNG TỔNG KẾT', W / 2, H * 0.25);
 
     let winnerText = winners.length === this.players.length 
       ? 'HÒA NHAU! (' + maxScore + 'đ)' 
