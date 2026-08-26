@@ -16,6 +16,7 @@
     html, body {
       width: 100%;
       height: 100%;
+      min-height: 100vh;
       background: #0f172a;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       overflow: hidden;
@@ -26,8 +27,10 @@
     }
     #game-container {
       position: relative;
-      width: 100vw;
+      width: 100%;
+      max-width: 480px;
       height: 100vh;
+      min-height: 560px;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -39,13 +42,10 @@
       body {
         height: auto;
         min-height: 100%;
-        align-items: flex-start;
       }
       #game-container {
-        width: 100%;
-        height: 600px !important;
-        max-height: 600px !important;
-        margin: 0 auto;
+        height: 620px !important;
+        max-height: 620px !important;
       }
     }
 
@@ -73,12 +73,13 @@
       border: 2px solid #38bdf8;
       border-radius: 16px;
       width: 100%;
-      max-width: 460px;
+      max-width: 420px;
       max-height: 90%;
       display: flex;
       flex-direction: column;
       padding: 18px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      overflow-y: auto;
     }
     .modal-box h2 {
       color: #38bdf8;
@@ -95,7 +96,7 @@
     }
     textarea {
       width: 100%;
-      height: 160px;
+      height: 150px;
       background: #0f172a;
       border: 1px solid #475569;
       border-radius: 8px;
@@ -109,9 +110,22 @@
       user-select: text;
       -webkit-user-select: text;
     }
-    textarea:focus {
-      border-color: #38bdf8;
+    textarea:focus { border-color: #38bdf8; }
+    .player-input {
+      width: 100%;
+      background: #0f172a;
+      border: 1.5px solid #475569;
+      border-radius: 8px;
+      color: #f8fafc;
+      padding: 9px 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      outline: none;
+      user-select: text;
+      -webkit-user-select: text;
+      transition: border-color 0.2s;
     }
+    .player-input:focus { border-color: #38bdf8; }
     .modal-actions {
       display: flex;
       gap: 10px;
@@ -126,20 +140,16 @@
       font-size: 0.9rem;
       cursor: pointer;
     }
-    .btn:active {
-      opacity: 0.8;
-    }
+    .btn:active { opacity: 0.8; }
     .btn-save { background: #0ea5e9; color: #fff; }
     .btn-preset { background: #475569; color: #f8fafc; }
 
-    .setting-group {
-      margin-bottom: 14px;
-    }
+    .setting-group { margin-bottom: 14px; }
     .setting-label {
-      font-size: 0.88rem;
+      font-size: 0.82rem;
       font-weight: bold;
       color: #cbd5e1;
-      margin-bottom: 8px;
+      margin-bottom: 5px;
       display: block;
     }
     .setting-options {
@@ -176,10 +186,36 @@
 <div id="game-container">
   <canvas id="gameCanvas"></canvas>
 
+  <!-- Modal Đổi Tên -->
+  <div id="names-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2>👤 Tên Người Chơi</h2>
+      <p>Đặt tên đại diện khi tham gia lượt đấu</p>
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 6px;">
+        <div>
+          <span class="setting-label" id="lbl-name-p1" style="color: #38bdf8;">Người chơi 1:</span>
+          <input type="text" id="name-p1" class="player-input" maxlength="12" placeholder="Nhập tên người chơi 1">
+        </div>
+        <div id="group-name-p2">
+          <span class="setting-label" id="lbl-name-p2" style="color: #f43f5e;">Người chơi 2:</span>
+          <input type="text" id="name-p2" class="player-input" maxlength="12" placeholder="Nhập tên người chơi 2">
+        </div>
+        <div id="group-name-p3">
+          <span class="setting-label" style="color: #facc15;">Người chơi 3:</span>
+          <input type="text" id="name-p3" class="player-input" maxlength="12" placeholder="Nhập tên người chơi 3">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-save" id="btn-save-names">Lưu & Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Từ Vựng -->
   <div id="vocab-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Soạn Danh Sách Từ Vựng</h2>
-      <p>Mỗi dòng là 1 cặp: <b>Tiếng Đức, Tiếng Việt</b><br>(Dùng dấu phẩy <code>,</code> hoặc gạch ngang <code>-</code>)</p>
+      <p>Mỗi dòng là 1 cặp: <b>Tiếng Đức, Tiếng Việt</b></p>
       <textarea id="vocab-input" spellcheck="false" placeholder="das Haus, ngôi nhà&#10;lernen, học tập&#10;der Baum, cái cây&#10;trinken, uống"></textarea>
       <div class="modal-actions">
         <button class="btn btn-preset" id="btn-default-vocab">Từ mẫu</button>
@@ -188,10 +224,10 @@
     </div>
   </div>
 
+  <!-- Modal Cài Đặt Game -->
   <div id="settings-modal" class="modal-overlay">
     <div class="modal-box">
       <h2>Thiết Lập Trò Chơi</h2>
-      
       <div class="setting-group" style="margin-top: 8px;">
         <span class="setting-label">👀 Xem trước bài lúc đầu:</span>
         <div class="setting-options" id="opt-preview">
@@ -201,7 +237,6 @@
           <button class="option-btn" data-val="20">20 giây</button>
         </div>
       </div>
-
       <div class="setting-group">
         <span class="setting-label">⏱️ Thời gian ngửa bài khi lật:</span>
         <div class="setting-options-3" id="opt-flip-delay">
@@ -210,15 +245,119 @@
           <button class="option-btn" data-val="3000">3 giây</button>
         </div>
       </div>
-
       <div class="modal-actions">
         <button class="btn btn-save" id="btn-save-settings">Đồng Ý</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Ví Tích Điểm -->
+  <div id="wallet-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2>💳 Ví Tích Điểm Người Chơi</h2>
+      <p>Nhập mã ví (20 ký tự) để tự động cộng điểm sau ván đấu</p>
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 6px;">
+        <div>
+          <span class="setting-label" style="color: #38bdf8;">Mã Ví Người chơi 1 (Bạn):</span>
+          <input type="text" id="wallet-p1" class="player-input" placeholder="VD: W9K3F8L2A7B5V1M4N6Q8">
+        </div>
+        <div>
+          <span class="setting-label" style="color: #f43f5e;">Mã Ví Người chơi 2:</span>
+          <input type="text" id="wallet-p2" class="player-input" placeholder="VD: W9K3F8L2A7B5V1M4N6Q8">
+        </div>
+        <div>
+          <span class="setting-label" style="color: #facc15;">Mã Ví Người chơi 3:</span>
+          <input type="text" id="wallet-p3" class="player-input" placeholder="VD: W9K3F8L2A7B5V1M4N6Q8">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-save" id="btn-save-wallet">Lưu Mã Ví</button>
       </div>
     </div>
   </div>
 </div>
 
 <script>
+// CẤU HÌNH VÍ NỘI BỘ
+const WALLET_SYSTEM_CONFIG = {
+  apiUrl: 'https://hoctiengdudedang.com/wp-json/point-wallet/v1/credit',
+  secretKey: 'GAME_SECRET_KEY_X987#@!',
+  gameId: 'MEMORY_DE_VI'
+};
+
+// BỘ MÃ HÓA HMAC-SHA256 THUẦN JAVASCRIPT (ĐỘC LẬP HOÀN TOÀN KHÔNG CẦN THƯ VIỆN NGOÀI)
+function calcHMACSHA256(message, secret) {
+  function sha256(ascii) {
+    function rightRotate(value, amount) { return (value >>> amount) | (value << (32 - amount)); }
+    var mathPow = Math.pow, maxWord = mathPow(2, 32), lengthProperty = 'length', i, j, result = '', words = [];
+    var asciiBitLength = ascii[lengthProperty] * 8, hash = sha256.h = sha256.h || [], k = sha256.k = sha256.k || [];
+    var primeCounter = k[lengthProperty], isComposite = {};
+    for (var candidate = 2; primeCounter < 64; candidate++) {
+      if (!isComposite[candidate]) {
+        for (i = 0; i < 313; i += candidate) isComposite[i] = candidate;
+        hash[primeCounter] = (mathPow(candidate, .5) * maxWord) | 0;
+        k[primeCounter++] = (mathPow(candidate, 1 / 3) * maxWord) | 0;
+      }
+    }
+    ascii += '\x80';
+    while (ascii[lengthProperty] % 64 - 56) ascii += '\x00';
+    for (i = 0; i < ascii[lengthProperty]; i++) {
+      j = ascii.charCodeAt(i);
+      if (j >> 8) return '';
+      words[i >> 2] |= j << ((3 - i) % 4) * 8;
+    }
+    words[words[lengthProperty]] = ((asciiBitLength / maxWord) | 0);
+    words[words[lengthProperty]] = asciiBitLength;
+    for (j = 0; j < words[lengthProperty];) {
+      var w = words.slice(j, j += 16), oldHash = hash;
+      hash = hash.slice(0, 8);
+      for (i = 0; i < 64; i++) {
+        var w15 = w[i - 15], w2 = w[i - 2];
+        var a = hash[0], e = hash[4];
+        var temp1 = hash[7]
+          + (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25))
+          + ((e & hash[5]) ^ ((~e) & hash[6]))
+          + k[i]
+          + (w[i] = (i < 16) ? w[i] : (
+              w[i - 16]
+              + (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3))
+              + w[i - 7]
+              + (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))
+            ) | 0
+          );
+        var temp2 = (rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22))
+          + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+        hash = [(temp1 + temp2) | 0].concat(hash);
+        hash[4] = (hash[4] + temp1) | 0;
+      }
+      for (i = 0; i < 8; i++) hash[i] = (hash[i] + oldHash[i]) | 0;
+    }
+    for (i = 0; i < 8; i++) {
+      for (j = 3; j >= 0; j--) {
+        var b = (hash[i] >> (j * 8)) & 255;
+        result += ((b < 16) ? '0' : '') + b.toString(16);
+      }
+    }
+    return result;
+  }
+
+  function hex2bin(hex) {
+    var bytes = [];
+    for (var i = 0; i < hex.length - 1; i += 2) bytes.push(String.fromCharCode(parseInt(hex.substr(i, 2), 16)));
+    return bytes.join('');
+  }
+
+  var blocksize = 64;
+  if (secret.length > blocksize) secret = hex2bin(sha256(secret));
+  while (secret.length < blocksize) secret += '\0';
+  var opad = '', ipad = '';
+  for (var i = 0; i < blocksize; i++) {
+    opad += String.fromCharCode(secret.charCodeAt(i) ^ 0x5C);
+    ipad += String.fromCharCode(secret.charCodeAt(i) ^ 0x36);
+  }
+  return sha256(opad + hex2bin(sha256(ipad + message)));
+}
+
 class SoundEngine {
   constructor() { this.ctx = null; }
   init() {
@@ -226,96 +365,76 @@ class SoundEngine {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (AudioCtx) this.ctx = new AudioCtx();
     }
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume();
-    }
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
   }
   playFlip() {
     if (!this.ctx) return;
     try {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
+      const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
       osc.type = 'sine';
       osc.frequency.setValueAtTime(320, this.ctx.currentTime);
       osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.08);
       gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
       gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.08);
+      osc.connect(gain); gain.connect(this.ctx.destination);
+      osc.start(); osc.stop(this.ctx.currentTime + 0.08);
     } catch(e) {}
   }
   playMatch() {
     if (!this.ctx) return;
     try {
-      const notes = [523.25, 659.25, 783.99, 1046.50];
-      notes.forEach((freq, idx) => {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
+      [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
         const startTime = this.ctx.currentTime + idx * 0.08;
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(freq, startTime);
         gain.gain.setValueAtTime(0.2, startTime);
         gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.25);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(startTime);
-        osc.stop(startTime + 0.25);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(startTime); osc.stop(startTime + 0.25);
       });
     } catch(e) {}
   }
   playMismatch() {
     if (!this.ctx) return;
     try {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
+      const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
       osc.type = 'sawtooth';
       osc.frequency.setValueAtTime(220, this.ctx.currentTime);
       osc.frequency.exponentialRampToValueAtTime(110, this.ctx.currentTime + 0.2);
       gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
       gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.2);
+      osc.connect(gain); gain.connect(this.ctx.destination);
+      osc.start(); osc.stop(this.ctx.currentTime + 0.2);
     } catch(e) {}
   }
   playWin() {
     if (!this.ctx) return;
     try {
-      const melody = [440, 554, 659, 880];
-      melody.forEach((freq, idx) => {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
+      [440, 554, 659, 880].forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
         const st = this.ctx.currentTime + idx * 0.12;
         osc.type = 'square';
         osc.frequency.setValueAtTime(freq, st);
         gain.gain.setValueAtTime(0.15, st);
         gain.gain.exponentialRampToValueAtTime(0.001, st + 0.35);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(st);
-        osc.stop(st + 0.35);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(st); osc.stop(st + 0.35);
       });
     } catch(e) {}
   }
   playLose() {
     if (!this.ctx) return;
     try {
-      const melody = [300, 260, 220, 180];
-      melody.forEach((freq, idx) => {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
+      [300, 260, 220, 180].forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
         const st = this.ctx.currentTime + idx * 0.14;
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(freq, st);
         gain.gain.setValueAtTime(0.2, st);
         gain.gain.exponentialRampToValueAtTime(0.001, st + 0.35);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(st);
-        osc.stop(st + 0.35);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(st); osc.stop(st + 0.35);
       });
     } catch(e) {}
   }
@@ -323,22 +442,16 @@ class SoundEngine {
 
 class Particle {
   constructor(x, y, color, speedMultiplier = 1.0) {
-    this.x = x;
-    this.y = y;
-    this.color = color;
+    this.x = x; this.y = y; this.color = color;
     const angle = Math.random() * Math.PI * 2;
     const speed = (Math.random() * 5 + 3) * speedMultiplier;
-    this.vx = Math.cos(angle) * speed;
-    this.vy = Math.sin(angle) * speed;
-    this.size = Math.random() * 4 + 3;
-    this.alpha = 1.0;
+    this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
+    this.size = Math.random() * 4 + 3; this.alpha = 1.0;
     this.decay = Math.random() * 0.02 + 0.015;
   }
   update(dt) {
-    this.x += this.vx * (dt * 60);
-    this.y += this.vy * (dt * 60);
-    this.vy += 0.12 * (dt * 60);
-    this.alpha -= this.decay * (dt * 60);
+    this.x += this.vx * (dt * 60); this.y += this.vy * (dt * 60);
+    this.vy += 0.12 * (dt * 60); this.alpha -= this.decay * (dt * 60);
   }
   draw(ctx) {
     if (this.alpha <= 0) return;
@@ -354,13 +467,9 @@ class Particle {
 
 class FloatingText {
   constructor(x, y, text, color, fontSize) {
-    this.x = x;
-    this.y = y;
-    this.text = text;
-    this.color = color;
-    this.fontSize = fontSize || 18;
-    this.alpha = 1.0;
-    this.vy = -1.5;
+    this.x = x; this.y = y; this.text = text;
+    this.color = color; this.fontSize = fontSize || 18;
+    this.alpha = 1.0; this.vy = -1.5;
   }
   update(dt) {
     this.y += this.vy * (dt * 60);
@@ -372,10 +481,8 @@ class FloatingText {
     ctx.globalAlpha = Math.max(0, this.alpha);
     ctx.font = 'bold ' + this.fontSize + 'px sans-serif';
     ctx.fillStyle = this.color;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 3;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 3;
     ctx.strokeText(this.text, this.x, this.y);
     ctx.fillText(this.text, this.x, this.y);
     ctx.restore();
@@ -383,55 +490,30 @@ class FloatingText {
 }
 
 const DEFAULT_VOCAB = [
-  { de: "das Haus", vi: "ngôi nhà" },
-  { de: "lernen", vi: "học tập" },
-  { de: "der Baum", vi: "cái cây" },
-  { de: "trinken", vi: "uống" },
-  { de: "das Buch", vi: "quyển sách" },
-  { de: "die Sonne", vi: "mặt trời" },
-  { de: "die Stadt", vi: "thành phố" },
-  { de: "arbeiten", vi: "làm việc" },
-  { de: "schlafen", vi: "ngủ" },
-  { de: "die Schule", vi: "trường học" },
-  { de: "sprechen", vi: "nói chuyện" },
-  { de: "das Wasser", vi: "nước" },
-  { de: "das Auto", vi: "xe hơi" },
-  { de: "die Blume", vi: "bông hoa" },
-  { de: "der Freund", vi: "người bạn" },
-  { de: "essen", vi: "ăn uống" },
-  { de: "hören", vi: "lắng nghe" },
-  { de: "die Katze", vi: "con mèo" },
-  { de: "der Hund", vi: "con chó" },
-  { de: "schreiben", vi: "viết" },
-  { de: "die Musik", vi: "âm nhạc" },
-  { de: "reisen", vi: "du lịch" },
-  { de: "kochen", vi: "nấu ăn" },
-  { de: "der Apfel", vi: "quả táo" },
+  { de: "das Haus", vi: "ngôi nhà" }, { de: "lernen", vi: "học tập" },
+  { de: "der Baum", vi: "cái cây" }, { de: "trinken", vi: "uống" },
+  { de: "das Buch", vi: "quyển sách" }, { de: "die Sonne", vi: "mặt trời" },
+  { de: "die Stadt", vi: "thành phố" }, { de: "arbeiten", vi: "làm việc" },
+  { de: "schlafen", vi: "ngủ" }, { de: "die Schule", vi: "trường học" },
+  { de: "sprechen", vi: "nói chuyện" }, { de: "das Wasser", vi: "nước" },
+  { de: "das Auto", vi: "xe hơi" }, { de: "die Blume", vi: "bông hoa" },
+  { de: "der Freund", vi: "người bạn" }, { de: "essen", vi: "ăn uống" },
+  { de: "hören", vi: "lắng nghe" }, { de: "die Katze", vi: "con mèo" },
+  { de: "der Hund", vi: "con chó" }, { de: "schreiben", vi: "viết" },
+  { de: "die Musik", vi: "âm nhạc" }, { de: "reisen", vi: "du lịch" },
+  { de: "kochen", vi: "nấu ăn" }, { de: "der Apfel", vi: "quả táo" },
   { de: "die Zeit", vi: "thời gian" }
 ];
 
 class VocabCard {
   constructor(id, pairId, lang, text) {
-    this.id = id;
-    this.pairId = pairId;
-    this.lang = lang;
-    this.text = text;
-    this.x = 0;
-    this.y = 0;
-    this.width = 0;
-    this.height = 0;
-    this.isFlipped = false;
-    this.isMatched = false;
-    this.flipProgress = 0;
+    this.id = id; this.pairId = pairId; this.lang = lang; this.text = text;
+    this.x = 0; this.y = 0; this.width = 0; this.height = 0;
+    this.isFlipped = false; this.isMatched = false; this.flipProgress = 0;
   }
-
   updateLayout(x, y, width, height) {
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
+    this.x = x; this.y = y; this.width = width; this.height = height;
   }
-
   update(dt) {
     const speed = 7.0;
     if (this.isFlipped || this.isMatched) {
@@ -440,37 +522,25 @@ class VocabCard {
       if (this.flipProgress > 0) this.flipProgress = Math.max(0, this.flipProgress - speed * dt);
     }
   }
-
   draw(ctx) {
-    if (this.isMatched && this.flipProgress === 1) {
-      ctx.globalAlpha = 0.35;
-    }
-
+    if (this.isMatched && this.flipProgress === 1) ctx.globalAlpha = 0.35;
     ctx.save();
     ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
-
     const cosVal = Math.cos(this.flipProgress * Math.PI);
-    const absScaleX = Math.max(0.001, Math.abs(cosVal));
-    ctx.scale(absScaleX, 1);
+    ctx.scale(Math.max(0.001, Math.abs(cosVal)), 1);
 
-    const w = this.width;
-    const h = this.height;
-    const radius = Math.max(4, Math.min(w, h) * 0.1);
+    const w = this.width, h = this.height, radius = Math.max(4, Math.min(w, h) * 0.1);
 
     if (this.flipProgress < 0.5) {
       const grad = ctx.createLinearGradient(-w / 2, -h / 2, w / 2, h / 2);
-      grad.addColorStop(0, '#1e3a8a');
-      grad.addColorStop(1, '#3b82f6');
-      ctx.fillStyle = grad;
-      ctx.strokeStyle = '#60a5fa';
+      grad.addColorStop(0, '#1e3a8a'); grad.addColorStop(1, '#3b82f6');
+      ctx.fillStyle = grad; ctx.strokeStyle = '#60a5fa';
       ctx.lineWidth = Math.max(1, Math.min(w, h) * 0.035);
       this.roundRect(ctx, -w / 2, -h / 2, w, h, radius, true, true);
 
       const iconSize = Math.max(8, Math.min(13, Math.floor(w * 0.15)));
       ctx.font = 'bold ' + iconSize + 'px sans-serif';
-      ctx.fillStyle = '#93c5fd';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#93c5fd'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText('DE - VI', 0, 0);
     } else {
       const isDe = this.lang === 'DE';
@@ -479,7 +549,6 @@ class VocabCard {
       ctx.lineWidth = Math.max(1.5, Math.min(w, h) * 0.045);
       this.roundRect(ctx, -w / 2, -h / 2, w, h, radius, true, true);
 
-      // Nhãn ngôn ngữ DE/VI rõ ràng, không phụ thuộc font emoji của hệ thống
       const badgeH = Math.max(10, Math.min(14, h * 0.18));
       const badgeW = Math.max(18, Math.min(24, w * 0.28));
       ctx.fillStyle = isDe ? '#0284c7' : '#ea580c';
@@ -487,65 +556,51 @@ class VocabCard {
 
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold ' + Math.floor(badgeH * 0.75) + 'px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(this.lang, 0, -h / 2 + 4 + badgeH / 2);
 
-      const safeW = w * 0.86;
-      const safeH = h * 0.60;
+      const safeW = w * 0.86, safeH = h * 0.60;
       this.drawWord(ctx, this.text, 0, badgeH * 0.5, safeW, safeH, isDe ? '#0369a1' : '#c2410c');
     }
-
     ctx.restore();
     ctx.globalAlpha = 1.0;
   }
-
   drawWord(ctx, text, cx, cy, maxW, maxH, color) {
+    if (!text) return;
     let fontSize = Math.min(maxH * 0.35, maxW * 0.22);
     fontSize = Math.max(9, Math.min(fontSize, 20));
-
-    ctx.fillStyle = color;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
 
     const words = text.split(' ');
     let lines = [];
-
     const fitLines = (fSize) => {
       ctx.font = 'bold ' + fSize + 'px sans-serif';
       lines = [];
       let currentLine = words[0];
       for (let i = 1; i < words.length; i++) {
         const word = words[i];
-        const width = ctx.measureText(currentLine + " " + word).width;
-        if (width <= maxW) {
+        if (ctx.measureText(currentLine + " " + word).width <= maxW) {
           currentLine += " " + word;
         } else {
-          lines.push(currentLine);
-          currentLine = word;
+          lines.push(currentLine); currentLine = word;
         }
       }
       lines.push(currentLine);
     };
-
     fitLines(fontSize);
 
-    let lineHeight = fontSize * 1.2;
-    let totalH = lines.length * lineHeight;
+    let lineHeight = fontSize * 1.2, totalH = lines.length * lineHeight;
     while ((totalH > maxH || lines.some(l => ctx.measureText(l).width > maxW)) && fontSize > 7.5) {
       fontSize -= 0.5;
       fitLines(fontSize);
-      lineHeight = fontSize * 1.15;
-      totalH = lines.length * lineHeight;
+      lineHeight = fontSize * 1.15; totalH = lines.length * lineHeight;
     }
-
     const startY = cy - ((lines.length - 1) * lineHeight) / 2;
-    lines.forEach((line, idx) => {
-      ctx.fillText(line, cx, startY + idx * lineHeight);
-    });
+    lines.forEach((line, idx) => ctx.fillText(line, cx, startY + idx * lineHeight));
   }
-
   roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+    if (width <= 0 || height <= 0) return;
+    radius = Math.min(radius, width / 2, height / 2);
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
     ctx.lineTo(x + width - radius, y);
@@ -560,10 +615,8 @@ class VocabCard {
     if (fill) ctx.fill();
     if (stroke) ctx.stroke();
   }
-
   contains(px, py) {
-    return px >= this.x && px <= this.x + this.width &&
-           py >= this.y && py <= this.y + this.height;
+    return px >= this.x && px <= this.x + this.width && py >= this.y && py <= this.y + this.height;
   }
 }
 
@@ -581,11 +634,20 @@ class GameManager {
     this.mode = 'AI';
     this.difficulty = 'EASY';
 
+    this.playerWallets = { p1: '', p2: '', p3: '' };
+    this.walletResults = [];
+    this.loadWallets();
+
+    this.playerNames = {
+      AI: { p1: 'Bạn', p2: 'DNZ' },
+      P2: { p1: 'Người 1', p2: 'Người 2' },
+      P3: { p1: 'Người 1', p2: 'Người 2', p3: 'Người 3' }
+    };
+
     this.previewTime = 0;
     this.flipDelay = 1000;
     this.isPreviewing = false;
     this.previewRemaining = 0;
-
     this.animTimer = 0;
     this.isUserWon = true;
 
@@ -611,45 +673,120 @@ class GameManager {
     this.loop();
   }
 
+  loadWallets() {
+    try {
+      const saved = localStorage.getItem('de_vi_wallets');
+      if (saved) this.playerWallets = { ...this.playerWallets, ...JSON.parse(saved) };
+    } catch(e) {}
+  }
+
+  saveWallets() {
+    try {
+      localStorage.setItem('de_vi_wallets', JSON.stringify(this.playerWallets));
+    } catch(e) {}
+  }
+
+  async creditPointsForPlayer(playerName, walletCode, amount) {
+    if (!walletCode || amount <= 0) return;
+
+    const resultItem = { name: playerName, ok: null, msg: 'Đang tích điểm...' };
+    this.walletResults.push(resultItem);
+
+    try {
+      const { apiUrl, secretKey, gameId } = WALLET_SYSTEM_CONFIG;
+      const payloadString = walletCode + amount + gameId;
+      const signature = calcHMACSHA256(payloadString, secretKey);
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          wallet_code: walletCode,
+          amount: amount,
+          game_id: gameId,
+          signature: signature
+        })
+      });
+
+      const data = await response.json();
+      if (response.ok && data.status === 'success') {
+        resultItem.ok = true;
+        resultItem.msg = `+${amount.toLocaleString('vi-VN')}đ (Dư: ${Number(data.new_balance).toLocaleString('vi-VN')}đ)`;
+      } else {
+        resultItem.ok = false;
+        resultItem.msg = `Lỗi: ${data.message || 'Thất bại'}`;
+      }
+    } catch (err) {
+      resultItem.ok = false;
+      resultItem.msg = `Lỗi mạng: ${err.message}`;
+    }
+  }
+
   setupModals() {
+    const namesModal = document.getElementById('names-modal');
+    const btnSaveNames = document.getElementById('btn-save-names');
+    const inputP1 = document.getElementById('name-p1');
+    const inputP2 = document.getElementById('name-p2');
+    const inputP3 = document.getElementById('name-p3');
+
+    if (btnSaveNames) {
+      btnSaveNames.addEventListener('click', () => {
+        const p1Val = inputP1.value.trim(), p2Val = inputP2.value.trim(), p3Val = inputP3.value.trim();
+        if (this.mode === 'AI') {
+          this.playerNames.AI.p1 = p1Val || 'Bạn';
+          this.playerNames.AI.p2 = p2Val || 'DNZ';
+        } else if (this.mode === 'P2') {
+          this.playerNames.P2.p1 = p1Val || 'Người 1';
+          this.playerNames.P2.p2 = p2Val || 'Người 2';
+        } else {
+          this.playerNames.P3.p1 = p1Val || 'Người 1';
+          this.playerNames.P3.p2 = p2Val || 'Người 2';
+          this.playerNames.P3.p3 = p3Val || 'Người 3';
+        }
+        namesModal.style.display = 'none';
+        this.sound.playMatch();
+      });
+    }
+
     const vocabModal = document.getElementById('vocab-modal');
     const textarea = document.getElementById('vocab-input');
     const btnSaveVocab = document.getElementById('btn-save-vocab');
     const btnPreset = document.getElementById('btn-default-vocab');
 
     const updateTextarea = () => {
-      textarea.value = this.vocabList.map(item => item.de + ', ' + item.vi).join('\n');
+      if (textarea) textarea.value = this.vocabList.map(item => item.de + ', ' + item.vi).join('\n');
     };
     updateTextarea();
 
-    btnPreset.addEventListener('click', () => {
-      this.vocabList = [...DEFAULT_VOCAB];
-      updateTextarea();
-    });
-
-    btnSaveVocab.addEventListener('click', () => {
-      const lines = textarea.value.split('\n');
-      const parsed = [];
-      lines.forEach(line => {
-        const cleaned = line.trim();
-        if (!cleaned) return;
-        let parts = cleaned.split(/[,;\-\t]/);
-        if (parts.length >= 2) {
-          const de = parts[0].trim();
-          const vi = parts.slice(1).join(', ').trim();
-          if (de && vi) parsed.push({ de, vi });
-        }
+    if (btnPreset) {
+      btnPreset.addEventListener('click', () => {
+        this.vocabList = [...DEFAULT_VOCAB];
+        updateTextarea();
       });
+    }
 
-      if (parsed.length < 8) {
-        alert('Vui lòng nhập ít nhất 8 cặp từ!');
-        return;
-      }
-
-      this.vocabList = parsed;
-      vocabModal.style.display = 'none';
-      this.sound.playMatch();
-    });
+    if (btnSaveVocab) {
+      btnSaveVocab.addEventListener('click', () => {
+        const lines = textarea.value.split('\n');
+        const parsed = [];
+        lines.forEach(line => {
+          const cleaned = line.trim();
+          if (!cleaned) return;
+          let parts = cleaned.split(/[,;\-\t]/);
+          if (parts.length >= 2) {
+            const de = parts[0].trim(), vi = parts.slice(1).join(', ').trim();
+            if (de && vi) parsed.push({ de, vi });
+          }
+        });
+        if (parsed.length < 8) {
+          alert('Vui lòng nhập ít nhất 8 cặp từ!');
+          return;
+        }
+        this.vocabList = parsed;
+        vocabModal.style.display = 'none';
+        this.sound.playMatch();
+      });
+    }
 
     const settingsModal = document.getElementById('settings-modal');
     const btnSaveSettings = document.getElementById('btn-save-settings');
@@ -657,12 +794,8 @@ class GameManager {
     const optFlipBtns = document.querySelectorAll('#opt-flip-delay .option-btn');
 
     const updateSettingsUI = () => {
-      optPreviewBtns.forEach(b => {
-        b.classList.toggle('active', parseInt(b.dataset.val) === this.previewTime);
-      });
-      optFlipBtns.forEach(b => {
-        b.classList.toggle('active', parseInt(b.dataset.val) === this.flipDelay);
-      });
+      optPreviewBtns.forEach(b => b.classList.toggle('active', parseInt(b.dataset.val) === this.previewTime));
+      optFlipBtns.forEach(b => b.classList.toggle('active', parseInt(b.dataset.val) === this.flipDelay));
     };
     updateSettingsUI();
 
@@ -682,26 +815,78 @@ class GameManager {
       });
     });
 
-    btnSaveSettings.addEventListener('click', () => {
-      settingsModal.style.display = 'none';
-      this.sound.playMatch();
-    });
+    if (btnSaveSettings) {
+      btnSaveSettings.addEventListener('click', () => {
+        settingsModal.style.display = 'none';
+        this.sound.playMatch();
+      });
+    }
+
+    const walletModal = document.getElementById('wallet-modal');
+    const btnSaveWallet = document.getElementById('btn-save-wallet');
+    const inpP1 = document.getElementById('wallet-p1');
+    const inpP2 = document.getElementById('wallet-p2');
+    const inpP3 = document.getElementById('wallet-p3');
+
+    if (btnSaveWallet) {
+      btnSaveWallet.addEventListener('click', () => {
+        this.playerWallets.p1 = inpP1.value.trim();
+        this.playerWallets.p2 = inpP2.value.trim();
+        this.playerWallets.p3 = inpP3.value.trim();
+        this.saveWallets();
+        walletModal.style.display = 'none';
+        this.sound.playMatch();
+      });
+    }
   }
 
-  openVocabModal() {
-    document.getElementById('vocab-modal').style.display = 'flex';
+  openNamesModal() {
+    const lblP1 = document.getElementById('lbl-name-p1');
+    const lblP2 = document.getElementById('lbl-name-p2');
+    const grpP3 = document.getElementById('group-name-p3');
+    const inputP1 = document.getElementById('name-p1');
+    const inputP2 = document.getElementById('name-p2');
+    const inputP3 = document.getElementById('name-p3');
+
+    if (this.mode === 'AI') {
+      lblP1.textContent = 'Tên của bạn:';
+      lblP2.textContent = 'Tên Máy (AI):';
+      grpP3.style.display = 'none';
+      inputP1.value = this.playerNames.AI.p1;
+      inputP2.value = this.playerNames.AI.p2;
+    } else if (this.mode === 'P2') {
+      lblP1.textContent = 'Người chơi 1:';
+      lblP2.textContent = 'Người chơi 2:';
+      grpP3.style.display = 'none';
+      inputP1.value = this.playerNames.P2.p1;
+      inputP2.value = this.playerNames.P2.p2;
+    } else {
+      lblP1.textContent = 'Người chơi 1:';
+      lblP2.textContent = 'Người chơi 2:';
+      grpP3.style.display = 'block';
+      inputP1.value = this.playerNames.P3.p1;
+      inputP2.value = this.playerNames.P3.p2;
+      inputP3.value = this.playerNames.P3.p3;
+    }
+    document.getElementById('names-modal').style.display = 'flex';
   }
 
-  openSettingsModal() {
-    document.getElementById('settings-modal').style.display = 'flex';
+  openVocabModal() { document.getElementById('vocab-modal').style.display = 'flex'; }
+  openSettingsModal() { document.getElementById('settings-modal').style.display = 'flex'; }
+
+  openWalletModal() {
+    document.getElementById('wallet-p1').value = this.playerWallets.p1 || '';
+    document.getElementById('wallet-p2').value = this.playerWallets.p2 || '';
+    document.getElementById('wallet-p3').value = this.playerWallets.p3 || '';
+    document.getElementById('wallet-modal').style.display = 'flex';
   }
 
   setupResize() {
     const handleResize = () => {
       const container = document.getElementById('game-container') || document.body;
       const rect = container.getBoundingClientRect();
-      this.width = rect.width || window.innerWidth || 360;
-      this.height = rect.height || 600;
+      this.width = Math.max(300, rect.width || window.innerWidth || 360);
+      this.height = Math.max(520, rect.height || window.innerHeight || 600);
       this.dpr = window.devicePixelRatio || 1;
 
       this.canvas.width = Math.floor(this.width * this.dpr);
@@ -716,15 +901,11 @@ class GameManager {
       }
       this.ctx.scale(this.dpr, this.dpr);
 
-      if (this.state === 'PLAYING') {
-        this.recalculateGridLayout();
-      }
+      if (this.state === 'PLAYING') this.recalculateGridLayout();
     };
 
     window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', () => {
-      setTimeout(handleResize, 150);
-    });
+    window.addEventListener('orientationchange', () => setTimeout(handleResize, 150));
     handleResize();
   }
 
@@ -740,9 +921,7 @@ class GameManager {
     this.canvas.addEventListener('mousedown', (e) => triggerAction(e.clientX, e.clientY));
     this.canvas.addEventListener('touchstart', (e) => {
       e.preventDefault();
-      if (e.touches.length > 0) {
-        triggerAction(e.touches[0].clientX, e.touches[0].clientY);
-      }
+      if (e.touches.length > 0) triggerAction(e.touches[0].clientX, e.touches[0].clientY);
     }, { passive: false });
   }
 
@@ -754,22 +933,23 @@ class GameManager {
     this.aiMemory.clear();
     this.lockBoard = false;
     this.matchedPairs = 0;
+    this.walletResults = [];
 
     if (this.mode === 'AI') {
       this.players = [
-        { name: 'Bạn', score: 0, color: '#38bdf8', isAI: false },
-        { name: 'DNZ', score: 0, color: '#f43f5e', isAI: true }
+        { name: this.playerNames.AI.p1, score: 0, color: '#38bdf8', isAI: false, walletKey: 'p1' },
+        { name: this.playerNames.AI.p2, score: 0, color: '#f43f5e', isAI: true, walletKey: null }
       ];
     } else if (this.mode === 'P2') {
       this.players = [
-        { name: 'Người 1', score: 0, color: '#38bdf8', isAI: false },
-        { name: 'Người 2', score: 0, color: '#f43f5e', isAI: false }
+        { name: this.playerNames.P2.p1, score: 0, color: '#38bdf8', isAI: false, walletKey: 'p1' },
+        { name: this.playerNames.P2.p2, score: 0, color: '#f43f5e', isAI: false, walletKey: 'p2' }
       ];
     } else {
       this.players = [
-        { name: 'Người 1', score: 0, color: '#38bdf8', isAI: false },
-        { name: 'Người 2', score: 0, color: '#f43f5e', isAI: false },
-        { name: 'Người 3', score: 0, color: '#facc15', isAI: false }
+        { name: this.playerNames.P3.p1, score: 0, color: '#38bdf8', isAI: false, walletKey: 'p1' },
+        { name: this.playerNames.P3.p2, score: 0, color: '#f43f5e', isAI: false, walletKey: 'p2' },
+        { name: this.playerNames.P3.p3, score: 0, color: '#facc15', isAI: false, walletKey: 'p3' }
       ];
     }
     this.currentPlayerIdx = 0;
@@ -777,16 +957,12 @@ class GameManager {
     let totalCards = 16;
     if (this.difficulty === 'MEDIUM') totalCards = 30;
     if (this.difficulty === 'HARD') totalCards = 50;
-
     this.totalPairs = totalCards / 2;
 
     const shuffledPool = [...this.vocabList].sort(() => Math.random() - 0.5);
     const selectedPairs = [];
     for (let i = 0; i < this.totalPairs; i++) {
-      selectedPairs.push({
-        pairId: i,
-        ...shuffledPool[i % shuffledPool.length]
-      });
+      selectedPairs.push({ pairId: i, ...shuffledPool[i % shuffledPool.length] });
     }
 
     const cardDataList = [];
@@ -869,9 +1045,7 @@ class GameManager {
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         if (idx < this.cards.length) {
-          const x = startX + c * (cardW + gap);
-          const y = startY + r * (cardH + gap);
-          this.cards[idx].updateLayout(x, y, cardW, cardH);
+          this.cards[idx].updateLayout(startX + c * (cardW + gap), startY + r * (cardH + gap), cardW, cardH);
           idx++;
         }
       }
@@ -883,22 +1057,13 @@ class GameManager {
       for (let i = 0; i < this.menuHitboxes.length; i++) {
         const btn = this.menuHitboxes[i];
         if (x >= btn.x && x <= btn.x + btn.w && y >= btn.y && y <= btn.y + btn.h) {
-          if (btn.type === 'mode') {
-            this.mode = btn.val;
-            this.sound.playFlip();
-          } else if (btn.type === 'diff') {
-            this.difficulty = btn.val;
-            this.sound.playFlip();
-          } else if (btn.type === 'vocab') {
-            this.sound.playFlip();
-            this.openVocabModal();
-          } else if (btn.type === 'settings') {
-            this.sound.playFlip();
-            this.openSettingsModal();
-          } else if (btn.type === 'start') {
-            this.sound.playMatch();
-            this.initGame();
-          }
+          if (btn.type === 'mode') { this.mode = btn.val; this.sound.playFlip(); }
+          else if (btn.type === 'diff') { this.difficulty = btn.val; this.sound.playFlip(); }
+          else if (btn.type === 'vocab') { this.sound.playFlip(); this.openVocabModal(); }
+          else if (btn.type === 'names') { this.sound.playFlip(); this.openNamesModal(); }
+          else if (btn.type === 'settings') { this.sound.playFlip(); this.openSettingsModal(); }
+          else if (btn.type === 'wallet') { this.sound.playFlip(); this.openWalletModal(); }
+          else if (btn.type === 'start') { this.sound.playMatch(); this.initGame(); }
           break;
         }
       }
@@ -913,7 +1078,7 @@ class GameManager {
       }
 
       if (this.lockBoard || this.isPreviewing) return;
-      if (this.players[this.currentPlayerIdx].isAI) return;
+      if (this.players[this.currentPlayerIdx] && this.players[this.currentPlayerIdx].isAI) return;
 
       for (let i = 0; i < this.cards.length; i++) {
         const card = this.cards[i];
@@ -934,49 +1099,40 @@ class GameManager {
     card.isFlipped = true;
     this.flippedCards.push(card);
     this.sound.playFlip();
-
     this.aiMemory.set(card.id, { pairId: card.pairId, lang: card.lang });
 
-    if (this.flippedCards.length === 2) {
-      this.checkMatch();
-    }
+    if (this.flippedCards.length === 2) this.checkMatch();
   }
 
   checkMatch() {
     this.lockBoard = true;
-    const c1 = this.flippedCards[0];
-    const c2 = this.flippedCards[1];
+    const c1 = this.flippedCards[0], c2 = this.flippedCards[1];
     const isPair = (c1.pairId === c2.pairId) && (c1.lang !== c2.lang);
 
     if (isPair) {
       setTimeout(() => {
-        c1.isMatched = true;
-        c2.isMatched = true;
-        this.players[this.currentPlayerIdx].score += 100;
+        c1.isMatched = true; c2.isMatched = true;
+        if (this.players[this.currentPlayerIdx]) this.players[this.currentPlayerIdx].score += 100;
         this.matchedPairs++;
-
         this.sound.playMatch();
         this.triggerMatchVFX(c1, c2);
-
         this.flippedCards = [];
         this.lockBoard = false;
 
         if (this.matchedPairs === this.totalPairs) {
           this.startVictoryAnimation();
-        } else if (this.players[this.currentPlayerIdx].isAI) {
+        } else if (this.players[this.currentPlayerIdx] && this.players[this.currentPlayerIdx].isAI) {
           setTimeout(() => this.makeAiMove(), 500);
         }
       }, 450);
     } else {
       setTimeout(() => {
         this.sound.playMismatch();
-        c1.isFlipped = false;
-        c2.isFlipped = false;
+        c1.isFlipped = false; c2.isFlipped = false;
         this.flippedCards = [];
         this.lockBoard = false;
-
         this.currentPlayerIdx = (this.currentPlayerIdx + 1) % this.players.length;
-        if (this.players[this.currentPlayerIdx].isAI) {
+        if (this.players[this.currentPlayerIdx] && this.players[this.currentPlayerIdx].isAI) {
           setTimeout(() => this.makeAiMove(), 650);
         }
       }, this.flipDelay);
@@ -984,7 +1140,7 @@ class GameManager {
   }
 
   makeAiMove() {
-    if (this.state !== 'PLAYING' || !this.players[this.currentPlayerIdx].isAI || this.lockBoard || this.isPreviewing) return;
+    if (this.state !== 'PLAYING' || !this.players[this.currentPlayerIdx] || !this.players[this.currentPlayerIdx].isAI || this.lockBoard || this.isPreviewing) return;
 
     const unmatched = this.cards.filter(c => !c.isMatched && !c.isFlipped);
     if (unmatched.length === 0) return;
@@ -1023,7 +1179,6 @@ class GameManager {
 
     setTimeout(() => {
       if (this.state !== 'PLAYING' || this.flippedCards.length !== 1) return;
-
       const targetPairId = firstChoice.pairId;
       const targetLang = firstChoice.lang === 'DE' ? 'VI' : 'DE';
       let secondChoice = null;
@@ -1031,10 +1186,7 @@ class GameManager {
       for (let [cId, info] of this.aiMemory.entries()) {
         if (cId !== firstChoice.id && info.pairId === targetPairId && info.lang === targetLang) {
           const matchCard = this.cards.find(c => c.id === cId);
-          if (matchCard && !matchCard.isMatched) {
-            secondChoice = matchCard;
-            break;
-          }
+          if (matchCard && !matchCard.isMatched) { secondChoice = matchCard; break; }
         }
       }
 
@@ -1054,11 +1206,9 @@ class GameManager {
     const colors = ['#38bdf8', '#fbbf24', '#4ade80', '#f43f5e', '#ffffff'];
     const fontSize = Math.max(14, Math.min(22, this.width * 0.045));
     [c1, c2].forEach(c => {
-      const cx = c.x + c.width / 2;
-      const cy = c.y + c.height / 2;
+      const cx = c.x + c.width / 2, cy = c.y + c.height / 2;
       for (let i = 0; i < 12; i++) {
-        const col = colors[Math.floor(Math.random() * colors.length)];
-        this.particles.push(new Particle(cx, cy, col));
+        this.particles.push(new Particle(cx, cy, colors[Math.floor(Math.random() * colors.length)]));
       }
       this.floatingTexts.push(new FloatingText(cx, cy, '+100đ', '#facc15', fontSize));
     });
@@ -1072,9 +1222,7 @@ class GameManager {
     this.players.forEach(p => { if (p.score > maxScore) maxScore = p.score; });
 
     if (this.mode === 'AI') {
-      const userPlayer = this.players[0];
-      const aiPlayer = this.players[1];
-      this.isUserWon = userPlayer.score >= aiPlayer.score;
+      this.isUserWon = this.players[0].score >= this.players[1].score;
     } else {
       this.isUserWon = true;
     }
@@ -1083,19 +1231,21 @@ class GameManager {
       this.sound.playWin();
       const colors = ['#38bdf8', '#fbbf24', '#4ade80', '#f43f5e', '#a855f7', '#ffffff'];
       for (let i = 0; i < 75; i++) {
-        const px = Math.random() * this.width;
-        const py = Math.random() * this.height * 0.6;
-        const col = colors[Math.floor(Math.random() * colors.length)];
-        this.particles.push(new Particle(px, py, col, 1.4));
+        this.particles.push(new Particle(Math.random() * this.width, Math.random() * this.height * 0.6, colors[Math.floor(Math.random() * colors.length)], 1.4));
       }
     } else {
       this.sound.playLose();
     }
+
+    this.players.forEach(p => {
+      if (!p.isAI && p.walletKey && p.score > 0) {
+        const code = this.playerWallets[p.walletKey];
+        if (code) this.creditPointsForPlayer(p.name, code, p.score);
+      }
+    });
   }
 
-  endGame() {
-    this.state = 'GAME_OVER';
-  }
+  endGame() { this.state = 'GAME_OVER'; }
 
   update(dt) {
     this.cards.forEach(c => c.update(dt));
@@ -1107,18 +1257,14 @@ class GameManager {
       this.floatingTexts[i].update(dt);
       if (this.floatingTexts[i].alpha <= 0) this.floatingTexts.splice(i, 1);
     }
-
     if (this.state === 'VICTORY_ANIM') {
       this.animTimer += dt;
-      if (this.animTimer >= 1.0) {
-        this.endGame();
-      }
+      if (this.animTimer >= 1.0) this.endGame();
     }
   }
 
   render() {
     this.ctx.clearRect(0, 0, this.width, this.height);
-
     if (this.state === 'MENU') {
       this.renderMenu();
     } else if (this.state === 'PLAYING') {
@@ -1126,10 +1272,7 @@ class GameManager {
       this.cards.forEach(c => c.draw(this.ctx));
       this.particles.forEach(p => p.draw(this.ctx));
       this.floatingTexts.forEach(t => t.draw(this.ctx));
-
-      if (this.isPreviewing) {
-        this.renderPreviewBanner();
-      }
+      if (this.isPreviewing) this.renderPreviewBanner();
     } else if (this.state === 'VICTORY_ANIM') {
       this.renderVictoryAnimation();
     } else if (this.state === 'GAME_OVER') {
@@ -1144,15 +1287,11 @@ class GameManager {
   renderVictoryAnimation() {
     const ctx = this.ctx;
     const progress = Math.min(1.0, this.animTimer / 1.0);
-
     ctx.save();
     if (!this.isUserWon) {
       const shakeAmp = (1 - progress) * 8;
-      const offsetX = (Math.random() - 0.5) * shakeAmp;
-      const offsetY = (Math.random() - 0.5) * shakeAmp;
-      ctx.translate(offsetX, offsetY);
+      ctx.translate((Math.random() - 0.5) * shakeAmp, (Math.random() - 0.5) * shakeAmp);
     }
-
     this.renderHeader();
     this.cards.forEach(c => c.draw(ctx));
     this.particles.forEach(p => p.draw(ctx));
@@ -1160,100 +1299,58 @@ class GameManager {
     ctx.fillStyle = `rgba(15, 23, 42, ${0.45 * Math.min(1, progress * 2)})`;
     ctx.fillRect(0, 0, this.width, this.height);
 
-    const cx = this.width / 2;
-    const cy = this.height / 2;
-
-    let scale = 1.0;
-    if (progress < 0.25) {
-      scale = (progress / 0.25) * 1.25;
-    } else if (progress < 0.45) {
-      scale = 1.25 - ((progress - 0.25) / 0.2) * 0.25;
-    } else {
-      scale = 1.0;
-    }
+    let scale = progress < 0.25 ? (progress / 0.25) * 1.25 : (progress < 0.45 ? 1.25 - ((progress - 0.25) / 0.2) * 0.25 : 1.0);
 
     ctx.save();
-    ctx.translate(cx, cy);
+    ctx.translate(this.width / 2, this.height / 2);
     ctx.scale(scale, scale);
 
     if (this.isUserWon) {
-      ctx.font = '54px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      ctx.font = '54px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText('🏆', 0, -32);
-
-      ctx.fillStyle = '#facc15';
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 4;
+      ctx.fillStyle = '#facc15'; ctx.strokeStyle = '#000000'; ctx.lineWidth = 4;
       ctx.font = 'bold ' + Math.max(22, Math.min(32, this.width * 0.08)) + 'px sans-serif';
-      ctx.strokeText('CHIẾN THẮNG!', 0, 26);
-      ctx.fillText('CHIẾN THẮNG!', 0, 26);
+      ctx.strokeText('CHIẾN THẮNG!', 0, 26); ctx.fillText('CHIẾN THẮNG!', 0, 26);
     } else {
-      ctx.font = '54px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      ctx.font = '54px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText('😢', 0, -32);
-
-      ctx.fillStyle = '#f43f5e';
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 4;
+      ctx.fillStyle = '#f43f5e'; ctx.strokeStyle = '#000000'; ctx.lineWidth = 4;
       ctx.font = 'bold ' + Math.max(20, Math.min(30, this.width * 0.075)) + 'px sans-serif';
-      ctx.strokeText('CHƯA THÀNH CÔNG!', 0, 26);
-      ctx.fillText('CHƯA THÀNH CÔNG!', 0, 26);
+      ctx.strokeText('CHƯA THÀNH CÔNG!', 0, 26); ctx.fillText('CHƯA THÀNH CÔNG!', 0, 26);
     }
-
     ctx.restore();
     ctx.restore();
   }
 
   renderPreviewBanner() {
     const ctx = this.ctx;
-    const bannerH = 34;
-    const bannerY = Math.max(46, Math.min(64, this.height * 0.09)) + 6;
-    
-    ctx.fillStyle = 'rgba(234, 88, 12, 0.9)';
-    ctx.strokeStyle = '#fdba74';
-    ctx.lineWidth = 1.5;
-    
+    const bannerH = 34, bannerY = Math.max(46, Math.min(64, this.height * 0.09)) + 6;
+    ctx.fillStyle = 'rgba(234, 88, 12, 0.9)'; ctx.strokeStyle = '#fdba74'; ctx.lineWidth = 1.5;
     const bannerW = Math.min(this.width * 0.84, 320);
     const startX = (this.width - bannerW) / 2;
-    
-    ctx.beginPath();
     this.roundRect(ctx, startX, bannerY, bannerW, bannerH, 8, true, true);
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 12px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(`👀 Ghi nhớ nhanh! Còn lại: ${this.previewRemaining}s`, this.width / 2, bannerY + bannerH / 2);
   }
 
   renderMenu() {
     const ctx = this.ctx;
     this.menuHitboxes = [];
-
-    const W = this.width;
-    const H = this.height;
-    const minDim = Math.min(W, H);
+    const W = this.width, H = this.height, minDim = Math.min(W, H);
 
     ctx.fillStyle = '#38bdf8';
-    const titleSize = Math.max(16, Math.min(22, minDim * 0.06));
-    ctx.font = 'bold ' + titleSize + "px sans-serif";
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('DEUTSCH - VIETNAMESISCH', W / 2, H * 0.075);
+    ctx.font = 'bold ' + Math.max(15, Math.min(20, minDim * 0.055)) + "px sans-serif";
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('DEUTSCH - VIETNAMESISCH', W / 2, H * 0.065);
 
     ctx.fillStyle = '#94a3b8';
-    ctx.font = Math.max(10, Math.min(11.5, minDim * 0.027)) + "px sans-serif";
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('Ghép cặp từ tương ứng Đức - Việt', W / 2, H * 0.12);
+    ctx.font = Math.max(9.5, Math.min(11, minDim * 0.025)) + "px sans-serif";
+    ctx.fillText('Ghép cặp từ tương ứng Đức - Việt', W / 2, H * 0.105);
 
     const btnW = Math.min(W * 0.88, 340);
-    const btnH = Math.max(34, Math.min(40, H * 0.06));
-    let curY = H * 0.16;
+    const btnH = Math.max(32, Math.min(38, H * 0.055));
+    let curY = H * 0.14;
 
-    // Sử dụng bộ Single Code Point emoji chuẩn
     const modes = [
       { id: 'AI', label: '🤖  Đấu với Máy (AI)' },
       { id: 'P2', label: '👥  2 Người chơi (Pass & Play)' },
@@ -1261,107 +1358,90 @@ class GameManager {
     ];
 
     modes.forEach(m => {
-      const isSel = this.mode === m.id;
-      const x = (W - btnW) / 2;
+      const isSel = this.mode === m.id, x = (W - btnW) / 2;
       ctx.fillStyle = isSel ? '#0284c7' : '#1e293b';
       ctx.strokeStyle = isSel ? '#38bdf8' : '#475569';
       ctx.lineWidth = 1.5;
-      
       this.roundRect(ctx, x, curY, btnW, btnH, 8, true, true);
 
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold ' + Math.max(11, Math.min(13, btnH * 0.38)) + "px sans-serif";
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      ctx.font = 'bold ' + Math.max(11, Math.min(12.5, btnH * 0.38)) + "px sans-serif";
       ctx.fillText(m.label, x + btnW / 2, curY + btnH / 2);
 
-      this.menuHitboxes.push({ type: 'mode', val: m.id, x: x, y: curY, w: btnW, h: btnH });
-      curY += btnH + Math.max(5, H * 0.012);
+      this.menuHitboxes.push({ type: 'mode', val: m.id, x, y: curY, w: btnW, h: btnH });
+      curY += btnH + Math.max(4, H * 0.009);
     });
 
-    curY += Math.max(2, H * 0.005);
-
+    curY += Math.max(2, H * 0.004);
     const diffs = [
       { id: 'EASY', label: 'Dễ (4x4)' },
       { id: 'MEDIUM', label: 'Vừa (6x5)' },
       { id: 'HARD', label: 'Khó (10x5)' }
     ];
-    const diffGap = 6;
-    const diffW = (btnW - diffGap * 2) / 3;
-    const diffH = btnH * 0.88;
-    const diffStartX = (W - btnW) / 2;
+    const diffGap = 6, diffW = (btnW - diffGap * 2) / 3, diffH = btnH * 0.85, diffStartX = (W - btnW) / 2;
 
     diffs.forEach((d, i) => {
-      const isSel = this.difficulty === d.id;
-      const x = diffStartX + i * (diffW + diffGap);
+      const isSel = this.difficulty === d.id, x = diffStartX + i * (diffW + diffGap);
       ctx.fillStyle = isSel ? '#eab308' : '#1e293b';
       ctx.strokeStyle = isSel ? '#fef08a' : '#475569';
       ctx.lineWidth = 1.5;
-
       this.roundRect(ctx, x, curY, diffW, diffH, 6, true, true);
 
       ctx.fillStyle = isSel ? '#0f172a' : '#fff';
-      ctx.font = 'bold ' + Math.max(10, Math.min(11.5, diffH * 0.38)) + "px sans-serif";
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      ctx.font = 'bold ' + Math.max(9.5, Math.min(11, diffH * 0.38)) + "px sans-serif";
       ctx.fillText(d.label, x + diffW / 2, curY + diffH / 2);
 
-      this.menuHitboxes.push({ type: 'diff', val: d.id, x: x, y: curY, w: diffW, h: diffH });
+      this.menuHitboxes.push({ type: 'diff', val: d.id, x, y: curY, w: diffW, h: diffH });
     });
 
-    curY += diffH + Math.max(6, H * 0.014);
+    curY += diffH + Math.max(6, H * 0.012);
+    const colGap = 8, colW = (btnW - colGap) / 2, colStartX = (W - btnW) / 2;
 
-    const rowGap = 8;
-    const halfBtnW = (btnW - rowGap) / 2;
-    const rowStartX = (W - btnW) / 2;
-
-    // Nút Từ Vựng với icon sách đơn mã
-    ctx.fillStyle = '#6366f1';
-    ctx.strokeStyle = '#a5b4fc';
-    ctx.lineWidth = 1.5;
-    this.roundRect(ctx, rowStartX, curY, halfBtnW, btnH, 8, true, true);
-
+    // Hàng 1
+    const x1 = colStartX, x2 = colStartX + colW + colGap;
+    ctx.fillStyle = '#6366f1'; ctx.strokeStyle = '#a5b4fc'; ctx.lineWidth = 1.5;
+    this.roundRect(ctx, x1, curY, colW, btnH, 8, true, true);
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold ' + Math.max(10.5, Math.min(12, btnH * 0.34)) + "px sans-serif";
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('📖 Từ Vựng (' + this.vocabList.length + ')', rowStartX + halfBtnW / 2, curY + btnH / 2);
-    this.menuHitboxes.push({ type: 'vocab', x: rowStartX, y: curY, w: halfBtnW, h: btnH });
+    ctx.font = 'bold ' + Math.max(9.5, Math.min(11.5, btnH * 0.34)) + "px sans-serif";
+    ctx.fillText('📖 Từ Vựng', x1 + colW / 2, curY + btnH / 2);
+    this.menuHitboxes.push({ type: 'vocab', x: x1, y: curY, w: colW, h: btnH });
 
-    // Nút Thiết Lập với icon cờ lê đơn mã
-    const setBtnX = rowStartX + halfBtnW + rowGap;
-    ctx.fillStyle = '#0f766e';
-    ctx.strokeStyle = '#2dd4bf';
-    ctx.lineWidth = 1.5;
-    this.roundRect(ctx, setBtnX, curY, halfBtnW, btnH, 8, true, true);
-
+    ctx.fillStyle = '#8b5cf6'; ctx.strokeStyle = '#c4b5fd'; ctx.lineWidth = 1.5;
+    this.roundRect(ctx, x2, curY, colW, btnH, 8, true, true);
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold ' + Math.max(10.5, Math.min(12, btnH * 0.34)) + "px sans-serif";
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('🔧 Thiết Lập', setBtnX + halfBtnW / 2, curY + btnH / 2);
-    this.menuHitboxes.push({ type: 'settings', x: setBtnX, y: curY, w: halfBtnW, h: btnH });
+    ctx.fillText('👤 Đổi Tên', x2 + colW / 2, curY + btnH / 2);
+    this.menuHitboxes.push({ type: 'names', x: x2, y: curY, w: colW, h: btnH });
+
+    curY += btnH + Math.max(5, H * 0.01);
+
+    // Hàng 2
+    ctx.fillStyle = '#0f766e'; ctx.strokeStyle = '#2dd4bf'; ctx.lineWidth = 1.5;
+    this.roundRect(ctx, x1, curY, colW, btnH, 8, true, true);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('🔧 Cài Đặt', x1 + colW / 2, curY + btnH / 2);
+    this.menuHitboxes.push({ type: 'settings', x: x1, y: curY, w: colW, h: btnH });
+
+    ctx.fillStyle = '#d97706'; ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 1.5;
+    this.roundRect(ctx, x2, curY, colW, btnH, 8, true, true);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('💳 Ví Điểm', x2 + colW / 2, curY + btnH / 2);
+    this.menuHitboxes.push({ type: 'wallet', x: x2, y: curY, w: colW, h: btnH });
 
     // Nút Bắt Đầu
-    const startY = curY + btnH + Math.max(10, H * 0.02);
-    const startH = Math.max(40, Math.min(46, H * 0.075));
-    const startX = (W - btnW) / 2;
+    const startY = curY + btnH + Math.max(10, H * 0.018);
+    const startH = Math.max(38, Math.min(44, H * 0.07)), startX = (W - btnW) / 2;
 
-    ctx.fillStyle = '#16a34a';
-    ctx.strokeStyle = '#86efac';
-    ctx.lineWidth = 2;
+    ctx.fillStyle = '#16a34a'; ctx.strokeStyle = '#86efac'; ctx.lineWidth = 2;
     this.roundRect(ctx, startX, startY, btnW, startH, 10, true, true);
-
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold ' + Math.max(13, Math.min(15.5, startH * 0.4)) + "px sans-serif";
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    ctx.font = 'bold ' + Math.max(12, Math.min(15, startH * 0.4)) + "px sans-serif";
     ctx.fillText('BẮT ĐẦU CHƠI', startX + btnW / 2, startY + startH / 2);
-
     this.menuHitboxes.push({ type: 'start', x: startX, y: startY, w: btnW, h: startH });
   }
 
   roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+    if (width <= 0 || height <= 0) return;
+    radius = Math.min(radius, width / 2, height / 2);
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
     ctx.lineTo(x + width - radius, y);
@@ -1384,26 +1464,20 @@ class GameManager {
     ctx.fillRect(0, 0, this.width, headerH);
 
     const homeBtnW = Math.max(44, Math.min(64, this.width * 0.14));
-    const homeBtnH = headerH - 8;
-    const homeBtnX = 6;
-    const homeBtnY = 4;
+    const homeBtnH = headerH - 8, homeBtnX = 6, homeBtnY = 4;
 
-    ctx.fillStyle = '#1e293b';
-    ctx.strokeStyle = '#475569';
-    ctx.lineWidth = 1.5;
+    ctx.fillStyle = '#1e293b'; ctx.strokeStyle = '#475569'; ctx.lineWidth = 1.5;
     this.roundRect(ctx, homeBtnX, homeBtnY, homeBtnW, homeBtnH, 8, true, true);
 
     ctx.fillStyle = '#f8fafc';
     ctx.font = 'bold ' + Math.max(10, Math.min(12, homeBtnH * 0.35)) + 'px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('Menu', homeBtnX + homeBtnW / 2, homeBtnY + homeBtnH / 2);
-
     this.homeBtnHitbox = { x: homeBtnX, y: homeBtnY, w: homeBtnW, h: homeBtnH };
 
+    if (!this.players || this.players.length === 0) return;
     const playersAreaStartX = homeBtnX + homeBtnW + 6;
-    const playersAreaW = this.width - playersAreaStartX;
-    const spacing = playersAreaW / this.players.length;
+    const spacing = (this.width - playersAreaStartX) / this.players.length;
 
     this.players.forEach((p, idx) => {
       const isCurrent = idx === this.currentPlayerIdx;
@@ -1411,22 +1485,17 @@ class GameManager {
 
       if (isCurrent) {
         ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-        ctx.strokeStyle = p.color;
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = p.color; ctx.lineWidth = 1.5;
         ctx.fillRect(playersAreaStartX + idx * spacing + 2, 4, spacing - 4, headerH - 8);
         ctx.strokeRect(playersAreaStartX + idx * spacing + 2, 4, spacing - 4, headerH - 8);
       }
 
       ctx.fillStyle = p.color;
-      const nameSize = Math.max(10, Math.min(13, headerH * 0.26));
-      ctx.font = (isCurrent ? 'bold ' : '') + nameSize + "px sans-serif";
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      ctx.font = (isCurrent ? 'bold ' : '') + Math.max(10, Math.min(13, headerH * 0.26)) + "px sans-serif";
       ctx.fillText(p.name + (isCurrent ? ' •' : ''), x, headerH * 0.32);
 
       ctx.fillStyle = '#facc15';
-      const scoreSize = Math.max(11, Math.min(15, headerH * 0.28));
-      ctx.font = 'bold ' + scoreSize + "px sans-serif";
+      ctx.font = 'bold ' + Math.max(11, Math.min(15, headerH * 0.28)) + "px sans-serif";
       ctx.fillText(p.score + 'đ', x, headerH * 0.72);
     });
   }
@@ -1439,35 +1508,48 @@ class GameManager {
     let maxScore = -1;
     this.players.forEach(p => { if (p.score > maxScore) maxScore = p.score; });
     const winners = this.players.filter(p => p.score === maxScore);
-
-    const W = this.width;
-    const H = this.height;
+    const W = this.width, H = this.height;
 
     ctx.fillStyle = '#facc15';
-    ctx.font = 'bold ' + Math.max(18, Math.min(28, W * 0.07)) + "px sans-serif";
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('BẢNG TỔNG KẾT', W / 2, H * 0.25);
+    ctx.font = 'bold ' + Math.max(18, Math.min(26, W * 0.065)) + "px sans-serif";
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('BẢNG TỔNG KẾT', W / 2, H * 0.20);
 
     let winnerText = winners.length === this.players.length 
       ? 'HÒA NHAU! (' + maxScore + 'đ)' 
       : 'THẮNG: ' + winners.map(w => w.name).join(' & ') + ' (' + maxScore + 'đ)';
 
     ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold ' + Math.max(14, Math.min(18, W * 0.045)) + "px sans-serif";
-    ctx.fillText(winnerText, W / 2, H * 0.35);
+    ctx.font = 'bold ' + Math.max(13, Math.min(17, W * 0.042)) + "px sans-serif";
+    ctx.fillText(winnerText, W / 2, H * 0.27);
 
-    let startY = H * 0.45;
+    let startY = H * 0.35;
     this.players.forEach(p => {
       ctx.fillStyle = p.color;
-      ctx.font = 'bold ' + Math.max(13, Math.min(16, W * 0.04)) + "px sans-serif";
+      ctx.font = 'bold ' + Math.max(12, Math.min(15, W * 0.038)) + "px sans-serif";
       ctx.fillText(p.name + ': ' + p.score + ' điểm', W / 2, startY);
-      startY += Math.max(22, H * 0.045);
+      startY += Math.max(20, H * 0.038);
     });
 
+    if (this.walletResults.length > 0) {
+      startY += 6;
+      this.walletResults.forEach(res => {
+        const boxW = Math.min(W * 0.88, 330), boxH = 34, boxX = (W - boxW) / 2;
+        ctx.fillStyle = res.ok === true ? 'rgba(22, 163, 74, 0.2)' : (res.ok === false ? 'rgba(220, 38, 38, 0.2)' : 'rgba(14, 165, 233, 0.2)');
+        ctx.strokeStyle = res.ok === true ? '#22c55e' : (res.ok === false ? '#ef4444' : '#38bdf8');
+        ctx.lineWidth = 1.5;
+        this.roundRect(ctx, boxX, startY, boxW, boxH, 6, true, true);
+
+        ctx.fillStyle = res.ok === true ? '#86efac' : (res.ok === false ? '#fca5a5' : '#7dd3fc');
+        ctx.font = 'bold ' + Math.max(9.5, Math.min(11.5, W * 0.03)) + 'px sans-serif';
+        ctx.fillText(`💳 ${res.name}: ${res.msg}`, W / 2, startY + boxH / 2);
+        startY += boxH + 6;
+      });
+    }
+
     ctx.fillStyle = '#94a3b8';
-    ctx.font = Math.max(11, Math.min(14, W * 0.035)) + "px sans-serif";
-    ctx.fillText('Chạm màn hình để quay lại Menu', W / 2, H * 0.85);
+    ctx.font = Math.max(11, Math.min(13, W * 0.032)) + "px sans-serif";
+    ctx.fillText('Chạm màn hình để quay lại Menu', W / 2, H * 0.90);
   }
 
   loop() {
@@ -1475,19 +1557,25 @@ class GameManager {
     const dt = Math.min((now - this.lastTime) / 1000, 0.1);
     this.lastTime = now;
 
-    this.update(dt);
-    this.render();
-
+    try {
+      this.update(dt);
+      this.render();
+    } catch(err) {
+      console.error("Game Render Error:", err);
+    }
     requestAnimationFrame(() => this.loop());
   }
 }
 
+function startGame() {
+  const canvas = document.getElementById('gameCanvas');
+  if (canvas) new GameManager(canvas);
+}
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    new GameManager(document.getElementById('gameCanvas'));
-  });
+  document.addEventListener('DOMContentLoaded', startGame);
 } else {
-  new GameManager(document.getElementById('gameCanvas'));
+  startGame();
 }
 </script>
 </body>
