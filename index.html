@@ -128,21 +128,23 @@
     .player-input:focus { border-color: #38bdf8; }
     .modal-actions {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       margin-top: 14px;
     }
     .btn {
       flex: 1;
-      padding: 10px;
+      padding: 10px 6px;
       border-radius: 8px;
       border: none;
       font-weight: bold;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       cursor: pointer;
+      text-align: center;
     }
     .btn:active { opacity: 0.8; }
     .btn-save { background: #0ea5e9; color: #fff; }
     .btn-preset { background: #475569; color: #f8fafc; }
+    .btn-online { background: #10b981; color: #fff; }
 
     .setting-group { margin-bottom: 14px; }
     .setting-label {
@@ -219,6 +221,7 @@
       <textarea id="vocab-input" spellcheck="false" placeholder="das Haus, ngôi nhà&#10;lernen, học tập&#10;der Baum, cái cây&#10;trinken, uống"></textarea>
       <div class="modal-actions">
         <button class="btn btn-preset" id="btn-default-vocab">Từ mẫu</button>
+        <button class="btn btn-online" id="btn-fetch-dldnz">Từ DL DNZ</button>
         <button class="btn btn-save" id="btn-save-vocab">Lưu & Đóng</button>
       </div>
     </div>
@@ -278,14 +281,71 @@
 </div>
 
 <script>
-// CẤU HÌNH VÍ NỘI BỘ
+// ID GOOGLE SHEETS
+const SHEET_ID = '1Hpa4eyfXvp4_lpqMCopD4fNnNQoIH0mXuLOXBy7aKEY';
+
+// HÀM TẢI DỮ LIỆU BẰNG GOOGLE VISUALIZATION API (VƯỢT CORS 100%)
+function fetchVocabFromGoogleSheet() {
+  return new Promise((resolve, reject) => {
+    const callbackName = 'gvizCallback_' + Date.now();
+    const script = document.createElement('script');
+    
+    // Tạo timeout tránh treo nếu mất mạng
+    const timeout = setTimeout(() => {
+      delete window[callbackName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+      reject(new Error('Yêu cầu hết thời gian (Timeout)'));
+    }, 8000);
+
+    window[callbackName] = (data) => {
+      clearTimeout(timeout);
+      delete window[callbackName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+
+      try {
+        const rows = data.table.rows;
+        const parsed = [];
+
+        rows.forEach(r => {
+          if (!r.c) return;
+          // Cột 2: Deutsch, Cột 3: Vietnamesisch
+          const deCell = r.c[2];
+          const viCell = r.c[3];
+
+          const de = deCell ? String(deCell.v || deCell.f || '').trim() : '';
+          const vi = viCell ? String(viCell.v || viCell.f || '').trim() : '';
+
+          if (de && vi && de.toLowerCase() !== 'deutsch' && vi.toLowerCase() !== 'vietnamesisch') {
+            parsed.push({ de, vi });
+          }
+        });
+
+        resolve(parsed);
+      } catch (err) {
+        reject(err);
+      }
+    };
+
+    script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:${callbackName}`;
+    script.onerror = () => {
+      clearTimeout(timeout);
+      delete window[callbackName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+      reject(new Error('Không thể tải dữ liệu từ Google Sheets.'));
+    };
+
+    document.body.appendChild(script);
+  });
+}
+
+// CẤU HÌNH VÍ NỘI BỘ[cite: 1]
 const WALLET_SYSTEM_CONFIG = {
   apiUrl: 'https://hoctiengducdedang.com/wp-json/point-wallet/v1/credit',
   secretKey: 'GAME_SECRET_KEY_X987#@!',
   gameId: 'MEMORY_DE_VI'
 };
 
-// BỘ MÃ HÓA HMAC-SHA256 THUẦN JAVASCRIPT (ĐỘC LẬP HOÀN TOÀN KHÔNG CẦN THƯ VIỆN NGOÀI)
+// BỘ MÃ HÓA HMAC-SHA256 THUẦN JAVASCRIPT[cite: 1]
 function calcHMACSHA256(message, secret) {
   function sha256(ascii) {
     function rightRotate(value, amount) { return (value >>> amount) | (value << (32 - amount)); }
@@ -490,19 +550,19 @@ class FloatingText {
 }
 
 const DEFAULT_VOCAB = [
-  { de: "das Haus", vi: "ngôi nhà" }, { de: "lernen", vi: "học tập" },
-  { de: "der Baum", vi: "cái cây" }, { de: "trinken", vi: "uống" },
-  { de: "das Buch", vi: "quyển sách" }, { de: "die Sonne", vi: "mặt trời" },
-  { de: "die Stadt", vi: "thành phố" }, { de: "arbeiten", vi: "làm việc" },
-  { de: "schlafen", vi: "ngủ" }, { de: "die Schule", vi: "trường học" },
-  { de: "sprechen", vi: "nói chuyện" }, { de: "das Wasser", vi: "nước" },
-  { de: "das Auto", vi: "xe hơi" }, { de: "die Blume", vi: "bông hoa" },
-  { de: "der Freund", vi: "người bạn" }, { de: "essen", vi: "ăn uống" },
-  { de: "hören", vi: "lắng nghe" }, { de: "die Katze", vi: "con mèo" },
-  { de: "der Hund", vi: "con chó" }, { de: "schreiben", vi: "viết" },
-  { de: "die Musik", vi: "âm nhạc" }, { de: "reisen", vi: "du lịch" },
-  { de: "kochen", vi: "nấu ăn" }, { de: "der Apfel", vi: "quả táo" },
-  { de: "die Zeit", vi: "thời gian" }
+  { de: "schnell", vi: "nhanh" }, { de: "der Spass", vi: "niềm vui" },
+  { de: "das Haus", vi: "ngôi nhà" }, { de: "das Buch", vi: "quyển sách" },
+  { de: "lernen", vi: "học" }, { de: "arbeiten", vi: "làm việc" },
+  { de: "sprechen", vi: "nói" }, { de: "essen", vi: "ăn" },
+  { de: "trinken", vi: "uống" }, { de: "schlafen", vi: "ngủ" },
+  { de: "gehen", vi: "đi bộ" }, { de: "fahren", vi: "đi (bằng xe)" },
+  { de: "der Tisch", vi: "cái bàn" }, { de: "der Stuhl", vi: "cái ghế" },
+  { de: "die Schule", vi: "trường học" }, { de: "der Lehrer", vi: "giáo viên nam" },
+  { de: "die Lehrerin", vi: "giáo viên nữ" }, { de: "der Freund", vi: "bạn trai / người bạn" },
+  { de: "die Freundin", vi: "bạn gái" }, { de: "das Auto", vi: "xe hơi" },
+  { de: "das Fahrrad", vi: "xe đạp" }, { de: "der Bus", vi: "xe buýt" },
+  { de: "der Zug", vi: "tàu hỏa" }, { de: "das Flugzeug", vi: "máy bay" },
+  { de: "die Stadt", vi: "thành phố" }
 ];
 
 class VocabCard {
@@ -752,6 +812,7 @@ class GameManager {
     const textarea = document.getElementById('vocab-input');
     const btnSaveVocab = document.getElementById('btn-save-vocab');
     const btnPreset = document.getElementById('btn-default-vocab');
+    const btnFetchDlDnz = document.getElementById('btn-fetch-dldnz');
 
     const updateTextarea = () => {
       if (textarea) textarea.value = this.vocabList.map(item => item.de + ', ' + item.vi).join('\n');
@@ -762,6 +823,33 @@ class GameManager {
       btnPreset.addEventListener('click', () => {
         this.vocabList = [...DEFAULT_VOCAB];
         updateTextarea();
+      });
+    }
+
+    if (btnFetchDlDnz) {
+      btnFetchDlDnz.addEventListener('click', async () => {
+        const originalText = btnFetchDlDnz.textContent;
+        btnFetchDlDnz.textContent = 'Đang tải...';
+        btnFetchDlDnz.disabled = true;
+
+        try {
+          const parsed = await fetchVocabFromGoogleSheet();
+
+          if (parsed.length === 0) {
+            alert('Không tìm thấy dữ liệu từ vựng hợp lệ ở cột C (Deutsch) và D (Vietnamesisch)!');
+          } else {
+            this.vocabList = parsed;
+            updateTextarea();
+            this.sound.playMatch();
+            alert(`Đã nạp thành công ${parsed.length} từ vựng từ Google Sheet DNZ!`);
+          }
+        } catch (error) {
+          console.error('Lỗi khi nạp từ vựng Google Sheet:', error);
+          alert('Không thể kết nối đến Google Sheets. Hãy đảm bảo file Sheet đã mở quyền "Bất kỳ ai có đường liên kết đều có thể xem" (Anyone with link can view).');
+        } finally {
+          btnFetchDlDnz.textContent = originalText;
+          btnFetchDlDnz.disabled = false;
+        }
       });
     }
 
